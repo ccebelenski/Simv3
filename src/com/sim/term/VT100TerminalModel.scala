@@ -360,6 +360,7 @@ class VT100TerminalModel(var columns: Int = VT100TerminalModel.DEFAULT_COLUMNS,
             cursorRow = cursorRow -  1
             //System.out.println(s":$cursorRow")
           }
+          scrolled = true
           //System.out.println(s"OUTPUT:$cursorRow")
           val back = if (backgroundBold) SGRColor.COLOR_BRIGHT(backgroundColor)
           else SGRColor.COLOR_NORMAL(backgroundColor)

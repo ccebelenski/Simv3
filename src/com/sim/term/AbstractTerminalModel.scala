@@ -172,4 +172,7 @@ abstract class AbstractTerminalModel {
    */
   def getDefaultForegroundColor: Color
 
+  // Set when scroll occurs, reset by user
+  var scrolled: Boolean = false
+  
 }

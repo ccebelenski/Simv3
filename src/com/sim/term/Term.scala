@@ -66,10 +66,18 @@ class Term(val model: AbstractTerminalModel) extends JComponent {
    */
   def print(str: String): Unit = {
     model.print(str)
+    if(model.scrolled) {
+      model.scrolled = false
+      scrollBar match {
+        case None =>
+        case Some(sb) => sb.setValue(model.getCursorRow - 24)
+      }
+    }
     // Refresh no faster than 30fps
     if(System.currentTimeMillis() > (lastRepaintTime + 33)  ) {
       repaint()
       lastRepaintTime = System.currentTimeMillis()
+
     }
   }
 
