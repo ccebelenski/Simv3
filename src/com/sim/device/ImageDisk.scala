@@ -142,15 +142,15 @@ trait ImageDisk {
 
   var IMAGE_TYPE: Int = IMAGE_TYPE_DSK
 
-  private val SECT_RECORD_UNAVAILABLE = 0 // Data could not be read from the original media
-  private val SECT_RECORD_NORM = 1 // Normal Data
-  private val SECT_RECORD_NORM_COMP = 2 // Compressed Normal Data
-  private val SECT_RECORD_NORM_DAM = 3 // Normal Data with deleted address mark
-  private val SECT_RECORD_NORM_DAM_COMP = 4 // Compressed Normal Data with deleted address mark
-  private val SECT_RECORD_NORM_ERR = 5 // Normal Data
-  private val SECT_RECORD_NORM_COMP_ERR = 6 // Compressed Normal Data
-  private val SECT_RECORD_NORM_DAM_ERR = 7 // Normal Data with deleted address mark
-  private val SECT_RECORD_NORM_DAM_COMP_ERR = 8 // Compressed Normal Data with deleted address mark
+  private val SECT_RECORD_UNAVAILABLE: Byte = 0 // Data could not be read from the original media
+  private val SECT_RECORD_NORM: Byte = 1 // Normal Data
+  private val SECT_RECORD_NORM_COMP: Byte = 2 // Compressed Normal Data
+  private val SECT_RECORD_NORM_DAM: Byte = 3 // Normal Data with deleted address mark
+  private val SECT_RECORD_NORM_DAM_COMP: Byte = 4 // Compressed Normal Data with deleted address mark
+  private val SECT_RECORD_NORM_ERR: Byte = 5 // Normal Data
+  private val SECT_RECORD_NORM_COMP_ERR: Byte = 6 // Compressed Normal Data
+  private val SECT_RECORD_NORM_DAM_ERR: Byte = 7 // Normal Data with deleted address mark
+  private val SECT_RECORD_NORM_DAM_COMP_ERR: Byte = 8 // Compressed Normal Data with deleted address mark
 
   private val IMD_DISK_IO_ERROR_GENERAL = 1 << 0 // General data error.
   private val IMD_DISK_IO_ERROR_CRC = 1 << 1 // Data read/written, but got a CRC error.
@@ -166,7 +166,7 @@ trait ImageDisk {
   var diskInfo: DiskInfo = new DiskInfo()
   var diskComment: Option[String] = None
 
-  final def isIMD():Boolean = {
+  final def isIMD(): Boolean = {
     IMAGE_TYPE == IMAGE_TYPE_IMD
   }
 
@@ -176,7 +176,7 @@ trait ImageDisk {
  */
   def diskOpen(unit: DiskUnit): Unit = {
     if (unit.fileChannel == null || !unit.fileChannel.isOpen) return
-    diskParse(unit)
+      diskParse(unit)
   }
 
 
@@ -225,12 +225,12 @@ trait ImageDisk {
    */
   def diskParse(diskUnit: DiskUnit): Unit = {
     //var comment: Array[Byte] = Array.ofDim(256)
-    var sectorMap: Array[Byte] = Array.ofDim(256)
-    var sectorHeadMap: Array[Byte] = Array.ofDim(256)
-    var sectorCylMap: Array[Byte] = Array.ofDim(256)
+    val sectorMap: Array[Byte] = Array.ofDim(256)
+    val sectorHeadMap: Array[Byte] = Array.ofDim(256)
+    val sectorCylMap: Array[Byte] = Array.ofDim(256)
     var sectorSize = 0
     var sectorHeadwithFlags = 0
-    var sectRecordType = 0
+    var sectRecordType: Byte = 0
     var start_sect = 0
 
     var TotalSectorCount = 0
@@ -274,7 +274,7 @@ trait ImageDisk {
       imd.head &= 1 /* mask out flag bits to head 0 or 1 */
 
       Utils.outlnd(diskUnit, s"Track ${diskInfo.ntracks}:")
-      Utils.outlnd(diskUnit, s"\tMode=${imd.mode}, Cyl=${imd.cyl}, Head=${sectorHeadwithFlags}(${imd.head}), #sectors=${imd.nsects}, sectsize=${imd.sectsize} ($sectorSize bytes)")
+      Utils.outlnd(diskUnit, s"\tMode=${imd.mode}, Cyl=${imd.cyl}, Head=$sectorHeadwithFlags(${imd.head}), #sectors=${imd.nsects}, sectsize=${imd.sectsize} ($sectorSize bytes)")
 
       if (!headerOK(imd)) {
         Utils.outln("IMD: Corrupt header.")
@@ -299,14 +299,14 @@ trait ImageDisk {
         return
       }
       diskInfo.track(imd.cyl)(imd.head).start_sector = imd.nsects
-      Utils.outlnd(diskUnit,"\tSector Map: ")
+      Utils.outlnd(diskUnit, "\tSector Map: ")
       for (i <- 0 to imd.nsects) {
         Utils.out(s"${sectorMap(i)} ")
         if (sectorMap(i) < diskInfo.track(imd.cyl)(imd.head).start_sector) {
           diskInfo.track(imd.cyl)(imd.head).start_sector = sectorMap(i)
         }
       }
-      Utils.outlnd(diskUnit,s", Start Sector=${diskInfo.track(imd.cyl)(imd.head).start_sector}")
+      Utils.outlnd(diskUnit, s", Start Sector=${diskInfo.track(imd.cyl)(imd.head).start_sector}")
 
       if ((sectorHeadwithFlags & IMD_FLAG_SECT_HEAD_MAP) != 0) {
         val cbuf = ByteBuffer.allocate(imd.nsects)
@@ -320,7 +320,7 @@ trait ImageDisk {
         }
         Utils.outd(diskUnit, "\tSector Head Map: ")
         for (i <- 0 to imd.nsects) {
-          Utils.outd(diskUnit, s"${sectorHeadMap(i)} ");
+          Utils.outd(diskUnit, s"${sectorHeadMap(i)} ")
         }
         Utils.outlnd(diskUnit, " ")
       } else {
@@ -422,15 +422,15 @@ trait ImageDisk {
       diskInfo.ntracks += 1
     }
 
-    Utils.outlnd(diskUnit,s"Processed $TotalSectorCount sectors")
+    Utils.outlnd(diskUnit, s"Processed $TotalSectorCount sectors")
 
     for (i <- 0 to diskInfo.ntracks) {
 
-      Utils.outd(diskUnit,"Track $i: ")
+      Utils.outd(diskUnit, "Track $i: ")
       for (j <- 0 to imd.nsects) {
-        Utils.outd(diskUnit,s"${diskInfo.track(i)(0).sectorOffsetMap(j)} ")
+        Utils.outd(diskUnit, s"${diskInfo.track(i)(0).sectorOffsetMap(j)} ")
       }
-      Utils.outlnd(diskUnit," ")
+      Utils.outlnd(diskUnit, " ")
     }
     if (diskUnit.isWriteProtect) {
       Utils.outln("Disk write-protected because the image contains compressed sectors. Use IMDU to uncompress.")
@@ -566,7 +566,7 @@ trait ImageDisk {
     }
 
     if (buf.capacity() < diskInfo.track(Cyl)(Head).sectsize) {
-      Utils.outlnd(unit,s"IMD: (sectRead) Reading C:$Cyl/H:$Head/S:$Sector, len=${buf.capacity()}: user buffer too short, need ${diskInfo.track(Cyl)(Head).sectsize}")
+      Utils.outlnd(unit, s"IMD: (sectRead) Reading C:$Cyl/H:$Head/S:$Sector, len=${buf.capacity()}: user buffer too short, need ${diskInfo.track(Cyl)(Head).sectsize}")
       return (IMD_DISK_IO_ERROR_GENERAL, 0)
     }
 
