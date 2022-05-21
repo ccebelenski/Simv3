@@ -1,10 +1,10 @@
 package com.sim
 
 import java.io.ByteArrayInputStream
-
 import com.sim.machine.AbstractMachine
 import com.sim.unsigned.UByte
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -16,7 +16,7 @@ class EM extends Command {
   commandHelpText = "Examine memory"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length < 1 || tokenArray.length > 2) sb.append("SIM: Requires an address or address range.")
     else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
@@ -61,7 +61,7 @@ class ER extends Command {
   commandHelpText = "Examine register value"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length != 1) sb.append("SIM: Requires a register to examine.")
     else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
@@ -76,7 +76,7 @@ class ER extends Command {
 
 object HexDump {
 
-  def hexdump(ubytes: Array[UByte], startAddr: Int, sb: StringBuilder) = {
+  def hexdump(ubytes: Array[UByte], startAddr: Int, sb: mutable.StringBuilder): Unit = {
     val bytesPerClump = 4
     val clumpsPerLine = 4
     val bufferSize = bytesPerClump * clumpsPerLine
@@ -84,7 +84,7 @@ object HexDump {
     var done = false
     var offset: Integer = 0
     val bis = new ByteArrayInputStream(ubytes.map(_.byteValue))
-    var buf = new Array[Byte](bufferSize)
+    val buf = new Array[Byte](bufferSize)
 
     while (!done) {
       val numBytesRead = bis.read(buf, 0, bufferSize)

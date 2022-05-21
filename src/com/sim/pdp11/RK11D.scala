@@ -30,23 +30,23 @@ object RK11D {
   val RK_NUMSC = 12 // sectors/surface
   val RK_NUMSF = 2 // surfaces/cylinder
   val RK_NUMCY = 203 // cylinders/drive
-  val RK_NUMTR = (RK_NUMCY * RK_NUMSF) // tracks/drive
+  val RK_NUMTR: Int = RK_NUMCY * RK_NUMSF // tracks/drive
   val RK_NUMDR = 8 // drives/controller
   val RK_M_NUMDR = 0x7
-  val RK_SIZE = (RK_NUMCY * RK_NUMSF * RK_NUMSC * RK_NUMWD) // words/drive
+  val RK_SIZE: Int = RK_NUMCY * RK_NUMSF * RK_NUMSC * RK_NUMWD // words/drive
   val RK_CTLI = 1 // controller int
 
-  def RK_SCPI(x: UInt) = (2 << (x)) // drive int
+  def RK_SCPI(x: UInt): Int = 2 << x // drive int
 
-  val RK_MAXFR = (1 << 16) // max transfer
+  val RK_MAXFR: Int = 1 << 16 // max transfer
 
   val BOOT_START = 0x400 // start
-  val BOOT_ENTRY = (BOOT_START + 2) // entry
-  val BOOT_UNIT = (BOOT_START + 0x8) // unit number
-  val BOOT_CSR = (BOOT_START + 0x1a) // CSR
-  val BOOT_LEN = boot_rom.length
+  val BOOT_ENTRY: Int = BOOT_START + 2 // entry
+  val BOOT_UNIT: Int = BOOT_START + 0x8 // unit number
+  val BOOT_CSR: Int = BOOT_START + 0x1a // CSR
 
-  val boot_rom = Array(
+
+  val boot_rom: Array[Int] = Array(
     0x444b, // "KD"
     0x15c6, BOOT_START, // MOV #boot_start, SP
     0x15c0, 0x0, // MOV #unit, R0        ; unit number
@@ -71,5 +71,5 @@ object RK11D {
     0x8a09, // CLRB (R1)
     0xa07 // CLR PC
   )
-
+  val BOOT_LEN: Int = boot_rom.length
 }

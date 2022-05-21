@@ -4,28 +4,28 @@ trait SmallUInt[U <: Unsigned[U, UInt, Int]] extends Any with Unsigned[U, UInt, 
   @inline
   def intRep: Int = intValue()
 
-  override def toByte(): Byte = {intRep.toByte}
+  override def toByte: Byte = {intRep.toByte}
 
-  override def toShort(): Short = {intRep.toShort}
+  override def toShort: Short = {intRep.toShort}
 
   @inline
-  override def toInt(): Int = intRep
+  override def toInt: Int = intRep
 
-  override def toLong(): Long = intRep & 0xffffffffL
+  override def toLong: Long = intRep & 0xffffffffL
 
-  override def toFloat(): Float = intRep.toFloat
+  override def toFloat: Float = intRep.toFloat
 
-  override def toDouble(): Double = intRep.toDouble
+  override def toDouble: Double = intRep.toDouble
 
-  override def toChar(): Char = intRep.toChar
+  override def toChar: Char = intRep.toChar
 
-  def toUByte(): UByte = UByte(intRep.toByte)
+  def toUByte: UByte = UByte(intRep.toByte)
 
-  def toUShort(): UShort = UShort(intRep.toShort)
+  def toUShort: UShort = UShort(intRep.toShort)
 
-  def toUInt(): UInt = UInt(intRep)
+  def toUInt: UInt = UInt(intRep)
 
-  def toULong(): ULong = ULong(intRep & 0xffffffffL)
+  def toULong: ULong = ULong(intRep & 0xffffffffL)
 
   override def byteValue(): Byte = intRep.toByte
 
@@ -39,109 +39,109 @@ trait SmallUInt[U <: Unsigned[U, UInt, Int]] extends Any with Unsigned[U, UInt, 
 
   override def doubleValue(): Double = (intRep & 0xffffffffL).toDouble
 
-  def +(x: Int)(implicit d: DummyImplicit): Int = this.toInt() + x
+  def +(x: Int)(implicit d: DummyImplicit): Int = this.toInt + x
 
-  def -(x: Int)(implicit d: DummyImplicit): Int = this.toInt() - x
+  def -(x: Int)(implicit d: DummyImplicit): Int = this.toInt - x
 
-  def *(x: Int)(implicit d: DummyImplicit): Int = this.toInt() * x
+  def *(x: Int)(implicit d: DummyImplicit): Int = this.toInt * x
 
-  def /(x: Int)(implicit d: DummyImplicit): Int = this.toInt() / x
+  def /(x: Int)(implicit d: DummyImplicit): Int = this.toInt / x
 
-  def %(x: Int)(implicit d: DummyImplicit): Int = this.toInt() % x
+  def %(x: Int)(implicit d: DummyImplicit): Int = this.toInt % x
 
-  def &(x: Int)(implicit d: DummyImplicit): Int = this.toInt() & x
+  def &(x: Int)(implicit d: DummyImplicit): Int = this.toInt & x
 
-  def |(x: Int)(implicit d: DummyImplicit): Int = this.toInt() | x
+  def |(x: Int)(implicit d: DummyImplicit): Int = this.toInt | x
 
-  def ^(x: Int)(implicit d: DummyImplicit): Int = this.toInt() ^ x
+  def ^(x: Int)(implicit d: DummyImplicit): Int = this.toInt ^ x
 
-  def +(x: Long)(implicit d: DummyImplicit): Long = this.toLong() + x
+  def +(x: Long)(implicit d: DummyImplicit): Long = this.toLong + x
 
-  def -(x: Long)(implicit d: DummyImplicit): Long = this.toLong() - x
+  def -(x: Long)(implicit d: DummyImplicit): Long = this.toLong - x
 
-  def *(x: Long)(implicit d: DummyImplicit): Long = this.toLong() * x
+  def *(x: Long)(implicit d: DummyImplicit): Long = this.toLong * x
 
-  def /(x: Long)(implicit d: DummyImplicit): Long = this.toLong() / x
+  def /(x: Long)(implicit d: DummyImplicit): Long = this.toLong / x
 
-  def %(x: Long)(implicit d: DummyImplicit): Long = this.toLong() % x
+  def %(x: Long)(implicit d: DummyImplicit): Long = this.toLong % x
 
-  def &(x: Long)(implicit d: DummyImplicit): Long = this.toLong() & x
+  def &(x: Long)(implicit d: DummyImplicit): Long = this.toLong & x
 
-  def |(x: Long)(implicit d: DummyImplicit): Long = this.toLong() | x
+  def |(x: Long)(implicit d: DummyImplicit): Long = this.toLong | x
 
-  def ^(x: Long)(implicit d: DummyImplicit): Long = this.toLong() ^ x
+  def ^(x: Long)(implicit d: DummyImplicit): Long = this.toLong ^ x
 
-  def +(x: UByte): UInt = this + x.toUInt()
+  def +(x: UByte): UInt = this + x.toUInt
 
-  def -(x: UByte): UInt = this - x.toUInt()
+  def -(x: UByte): UInt = this - x.toUInt
 
-  def *(x: UByte): UInt = this * x.toUInt()
+  def *(x: UByte): UInt = this * x.toUInt
 
-  def /(x: UByte): UInt = this / x.toUInt()
+  def /(x: UByte): UInt = this / x.toUInt
 
-  def %(x: UByte): UInt = this % x.toUInt()
+  def %(x: UByte): UInt = this % x.toUInt
 
-  def &(x: UByte): UInt = this & x.toUInt()
+  def &(x: UByte): UInt = this & x.toUInt
 
-  def |(x: UByte): UInt = this | x.toUInt()
+  def |(x: UByte): UInt = this | x.toUInt
 
-  def ^(x: UByte): UInt = this ^ x.toUInt()
+  def ^(x: UByte): UInt = this ^ x.toUInt
 
-  def <(x: UByte): Boolean = this < x.toUInt()
+  def <(x: UByte): Boolean = this < x.toUInt
 
-  def >(x: UByte): Boolean = this > x.toUInt()
+  def >(x: UByte): Boolean = this > x.toUInt
 
-  def <=(x: UByte): Boolean = this <= x.toUInt()
+  def <=(x: UByte): Boolean = this <= x.toUInt
 
-  def >=(x: UByte): Boolean = this >= x.toUInt()
+  def >=(x: UByte): Boolean = this >= x.toUInt
 
-  def +(x: UShort): UInt = this + x.toUInt()
+  def +(x: UShort): UInt = this + x.toUInt
 
-  def -(x: UShort): UInt = this - x.toUInt()
+  def -(x: UShort): UInt = this - x.toUInt
 
-  def *(x: UShort): UInt = this * x.toUInt()
+  def *(x: UShort): UInt = this * x.toUInt
 
-  def /(x: UShort): UInt = this / x.toUInt()
+  def /(x: UShort): UInt = this / x.toUInt
 
-  def %(x: UShort): UInt = this % x.toUInt()
+  def %(x: UShort): UInt = this % x.toUInt
 
-  def &(x: UShort): UInt = this & x.toUInt()
+  def &(x: UShort): UInt = this & x.toUInt
 
-  def |(x: UShort): UInt = this | x.toUInt()
+  def |(x: UShort): UInt = this | x.toUInt
 
-  def ^(x: UShort): UInt = this ^ x.toUInt()
+  def ^(x: UShort): UInt = this ^ x.toUInt
 
-  def <(x: UShort): Boolean = this < x.toUInt()
+  def <(x: UShort): Boolean = this < x.toUInt
 
-  def >(x: UShort): Boolean = this > x.toUInt()
+  def >(x: UShort): Boolean = this > x.toUInt
 
-  def <=(x: UShort): Boolean = this <= x.toUInt()
+  def <=(x: UShort): Boolean = this <= x.toUInt
 
-  def >=(x: UShort): Boolean = this >= x.toUInt()
+  def >=(x: UShort): Boolean = this >= x.toUInt
 
-  def +(x: ULong): ULong = this.toULong() + x
+  def +(x: ULong): ULong = this.toULong + x
 
-  def -(x: ULong): ULong = this.toULong() - x
+  def -(x: ULong): ULong = this.toULong - x
 
-  def *(x: ULong): ULong = this.toULong() * x
+  def *(x: ULong): ULong = this.toULong * x
 
-  def /(x: ULong): ULong = this.toULong() / x
+  def /(x: ULong): ULong = this.toULong / x
 
-  def %(x: ULong): ULong = this.toULong() % x
+  def %(x: ULong): ULong = this.toULong % x
 
-  def &(x: ULong): ULong = this.toULong() & x
+  def &(x: ULong): ULong = this.toULong & x
 
-  def |(x: ULong): ULong = this.toULong() | x
+  def |(x: ULong): ULong = this.toULong | x
 
-  def ^(x: ULong): ULong = this.toULong() ^ x
+  def ^(x: ULong): ULong = this.toULong ^ x
 
-  def <(x: ULong): Boolean = this.toULong() < x
+  def <(x: ULong): Boolean = this.toULong < x
 
-  def >(x: ULong): Boolean = this.toULong() > x
+  def >(x: ULong): Boolean = this.toULong > x
 
-  def <=(x: ULong): Boolean = this.toULong() <= x
+  def <=(x: ULong): Boolean = this.toULong <= x
 
-  def >=(x: ULong): Boolean = this.toULong() >= x
+  def >=(x: ULong): Boolean = this.toULong >= x
 
   def +(x: UInt): UInt = UInt(intRep + x.intRep)
 
@@ -163,7 +163,7 @@ trait SmallUInt[U <: Unsigned[U, UInt, Int]] extends Any with Unsigned[U, UInt, 
     UInt(r.toInt)
   }
 
-  def unary_+ : UInt = this.toUInt()
+  def unary_+ : UInt = this.toUInt
 
   def unary_- : UInt = UInt(-intRep) // maybe just -intRep ??
 
@@ -252,13 +252,13 @@ trait SmallUInt[U <: Unsigned[U, UInt, Int]] extends Any with Unsigned[U, UInt, 
 
   def >>>(x: ULong): UInt = UInt(intRep >>> (x.toLong & 0x1f).intValue)
 
-  override def toString(): String = (intRep & 0xffffffffL).toString
+  override def toString: String = (intRep & 0xffffffffL).toString
 
   def +(x: java.lang.String): String = this.toString + x
 
-  def toHexString(): String = (intRep & 0xffffffffL).toHexString
+  def toHexString: String = (intRep & 0xffffffffL).toHexString
 
-  def toOctalString(): String = (intRep & 0xffffffffL).toOctalString
+  def toOctalString: String = (intRep & 0xffffffffL).toOctalString
 
-  def toBinaryString(): String = (intRep & 0xffffffffL).toBinaryString
+  def toBinaryString: String = (intRep & 0xffffffffL).toBinaryString
 }

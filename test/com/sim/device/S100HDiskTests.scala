@@ -7,6 +7,8 @@ import com.sim.unsigned.UInt
 import org.junit.Assert.assertTrue
 import org.junit.{Before, Test}
 
+import scala.collection.mutable
+
 class S100HDiskTests {
 
   var z80: Z80 = _
@@ -15,7 +17,7 @@ class S100HDiskTests {
   var PC: Register16 = _
   var hdsk: S100HDSKDevice = _
   var fdsk: S100FD400Device = _
-  var sb: StringBuilder = _
+  var sb: mutable.StringBuilder = _
 
   @Before
   def setUpZ80(): Unit = {
@@ -27,7 +29,7 @@ class S100HDiskTests {
       z80.setMemorySize(UInt(0x500))
       //Z80Tests.mmu.mapRAM(UInt(0x0000), UInt(0x500))
       PC = z80.registers("PC").asInstanceOf[Register16]
-      sb = new StringBuilder
+      sb = new mutable.StringBuilder
       z80.setOption("STOPONHALT", "true", sb)
       hdsk = machine.findDevice("HDA").get.asInstanceOf[S100HDSKDevice]
       fdsk = machine.findDevice("FDA").get.asInstanceOf[S100FD400Device]
@@ -46,7 +48,7 @@ class S100HDiskTests {
     assertTrue(mmu.get8(0x5c70) == 0xc3)
     assertTrue(mmu.get8(0x5cff) == 0x00)
 
-    val sb = new StringBuilder
+    val sb = new mutable.StringBuilder
     z80.DAsm(0x5c00, 0x5cff, sb)
     Utils.out(sb.toString())
   }
@@ -105,7 +107,7 @@ class S100HDiskTests {
     val position = unit.fileChannel.position()
     Utils.outln(s"UNIT POSITION AFTER READ = $position")
 
-    assertTrue(s"Position should be the same after both reads.", fposition == position)
+
 
     val a1 = funit.byteBuffer.array()
     assertTrue(s"Should have read 137 bytes", a1.length == 137)
@@ -115,7 +117,7 @@ class S100HDiskTests {
       assertTrue(s"Byte mismatch at position $x : $b : ${a1(x)}", b == a1(x))
       Utils.out(s"$b:${a1(x)} ")
     }
-
+    assertTrue(s"Position should be the same after both reads.", fposition == position)
     Utils.outln("\n\rDone checking read.")
 
     sb.clear()

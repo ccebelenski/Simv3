@@ -2,6 +2,8 @@ package com.sim.device
 
 import com.sim.Utils
 
+import scala.collection.mutable
+
 /**
   * Created by christophercebelenski on 7/18/16.
   */
@@ -26,7 +28,7 @@ abstract class BasicUnit(val device: BasicDevice) extends Ordered[BasicUnit] wit
 
   val dn = s"$getName:"
 
-  def showCommand(sb:StringBuilder): Unit = {
+  def showCommand(sb:mutable.StringBuilder): Unit = {
 
     sb.append(s"$dn  Unit $getName Active: $active\n\r")
 

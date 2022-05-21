@@ -3,7 +3,10 @@ package com.sim.cpu
 import com.sim.Utils
 import com.sim.device.{BasicDevice, BinaryUnitOption}
 import com.sim.machine.AbstractMachine
-import com.sim.unsigned._
+import com.sim.unsigned.*
+
+import scala.annotation.targetName
+import scala.collection.mutable
 
 /**
  * Created by christophercebelenski on 7/1/16.
@@ -63,6 +66,7 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
     if (clear) reg(reg & ~flag) else reg(reg | flag)
   }
 
+  // If the flag is set, returns true
   @inline
   final def testFlag(reg: Register8, flag: Int): Boolean = {
     if ((reg.intValue & flag) != 0) true else false
@@ -96,7 +100,7 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
 
     MMU.mapRAM(UInt(0x0000), MEMORYSIZE)
 
-    Utils.outln(s"\r\n$getName: Memory size = ${Utils.formatBytes(MEMORYSIZE.toLong(), false)} Banked: $isBanked")
+    Utils.outln(s"\r\n$getName: Memory size = ${Utils.formatBytes(MEMORYSIZE.toLong, false)} Banked: $isBanked")
 
   }
 
@@ -105,7 +109,7 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
   def resetCPU(): Unit
 
   /* UI Routines */
-  def examine(address: Int, sb: StringBuilder): UByte = {
+  def examine(address: Int, sb: mutable.StringBuilder): UByte = {
     val byte = MMU.get8(address)
     sb.append(f"$getName: 0x$address%04X:0x${byte.byteValue}%02X")
     byte
@@ -116,7 +120,7 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
 
   }
 
-  def examineWord(address: Int, sb: StringBuilder): UShort = {
+  def examineWord(address: Int, sb: mutable.StringBuilder): UShort = {
     val word = MMU.get16(address)
     sb.append(f"$getName: 0x$address%04X:0x${word.shortValue}%04X")
     word
@@ -126,7 +130,7 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
     MMU.get16(address)
   }
 
-  def examineRegister(nmemonic: String, sb: StringBuilder): Int = {
+  def examineRegister(nmemonic: String, sb: mutable.StringBuilder): Int = {
     registers.get(nmemonic) match {
       case Some(r: Register8) =>
         sb.append(f"$getName: $r")
@@ -192,16 +196,16 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
   }
 
 
-  override def showCommand(stringBuilder: StringBuilder): Unit = {
+  override def showCommand(stringBuilder: mutable.StringBuilder): Unit = {
     super.showCommand(stringBuilder)
     stringBuilder.append(s"\n\r$getName: Registers:\n\r" + showRegisters() + "\n\r")
     stringBuilder.append(s"$getName: Flags:\n\r" + showFlags() + "\n\r")
   }
 
   // Dissassembly
-  def DAsm(addr: Int, sb: StringBuilder): Int
+  def DAsm(addr: Int, sb: mutable.StringBuilder): Int
 
-  def DAsm(addr: Int, toAddr: Int, sb: StringBuilder): Int = {
+  def DAsm(addr: Int, toAddr: Int, sb: mutable.StringBuilder): Int = {
     var pc = addr
     while (pc <= toAddr) {
       sb.append("\n\r" + f"$pc%08x: ")
@@ -219,7 +223,7 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
 
   @inline
   final def CHECK_LOG_BYTE(v: Int): Unit = {
-    if(machine.checkMemLog(UInt(v)) )Utils.outln(s"\r\n$getName: Memory Log Addr: ${v.toHexString} Value: ${MMU.get8(v).toHexString()}")
+    if(machine.checkMemLog(UInt(v)) )Utils.outln(s"\r\n$getName: Memory Log Addr: ${v.toHexString} Value: ${MMU.get8(v).toHexString}")
   }
 
   @inline
@@ -230,7 +234,8 @@ abstract class BasicCPU(val isBanked: Boolean, override val machine: AbstractMac
 
   @inline
   final def CHECK_LOG_WORD(addr: Int): Unit = {
-    if(machine.checkMemLog(UInt(addr))) Utils.outln(s"\r\n$getName: Memory Log Addr: ${addr.toHexString} Value: ${MMU.get16(addr).toHexString()}")
+    if(machine.checkMemLog(UInt(addr))) 
+      Utils.outln(s"\r\n$getName: Memory Log Addr: ${addr.toHexString} Value: ${MMU.get16(addr).toHexString}")
   }
 
 }
@@ -239,6 +244,7 @@ abstract class Register(val nmenomic: String) {
   val aWidth: Int
 }
 
+//noinspection NoTargetNameAnnotationForOperatorLikeDefinition
 class Register8(override val nmenomic: String) extends Register(nmenomic) {
   private var value: UByte = UByte(0)
 
@@ -315,7 +321,7 @@ class CompositeRegister32(override val nmenomic: String, val high: Register16, v
   def get16low: UShort = low.get16
 
   @inline
-  override def get32: ULong = (low.get16 | (high.get16 << 16)).toULong()
+  override def get32: ULong = (low.get16 | (high.get16 << 16)).toULong
 
   @inline
   override def set32(value: ULong): Unit = {
@@ -344,6 +350,7 @@ class CompositeRegister32(override val nmenomic: String, val high: Register16, v
   override def toString: String = f"$nmenomic:0x${get32.longValue}%08X"
 }
 
+//noinspection NoTargetNameAnnotationForOperatorLikeDefinition
 class Register32(override val nmenomic: String) extends Register(nmenomic) {
   private var value: ULong = ULong(0)
 
@@ -423,7 +430,7 @@ class CompositeRegister16(override val nmenomic: String, val high: Register8, va
   def get8low: UByte = low.get8()
 
   @inline
-  override def get16: UShort = (low.get8() | (high.get8() << 8)).toUShort()
+  override def get16: UShort = (low.get8() | (high.get8() << 8)).toUShort
 
   @inline
   override def set16(value: UShort): Unit = {
@@ -452,6 +459,7 @@ class CompositeRegister16(override val nmenomic: String, val high: Register8, va
   override def toString: String = f"$nmenomic:0x${get16.intValue()}%04X"
 }
 
+//noinspection NoTargetNameAnnotationForOperatorLikeDefinition
 class Register16(override val nmenomic: String) extends Register(nmenomic) {
   private var value: UShort = UShort(0)
 
@@ -525,7 +533,7 @@ object Register16 {
 
   implicit def reg162Short(value: Register16): Short = value.get16.shortValue
 
-  implicit def reg162Int(value: Register16): Int = value.get16.toInt()
+  implicit def reg162Int(value: Register16): Int = value.get16.toInt
 
   //implicit def int2reg16(value: Int): Register16 = new Register16(value)
 }

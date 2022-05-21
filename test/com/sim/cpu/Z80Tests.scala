@@ -7,6 +7,8 @@ import org.junit.Assert.*
 import org.junit.{Before, Test}
 import com.sim.unsigned.ubyte2Int
 import com.sim.unsigned.ubyte2uint
+
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 class Z80Tests {
@@ -14,7 +16,7 @@ class Z80Tests {
   var z80: Z80 = _
   var mmu: BasicMMU = _
   var machine: S100Machine = _
-  var PC: Register16 = null
+  var PC: Register16 = _
 
   @Before
   def setUpZ80(): Unit = {
@@ -26,7 +28,7 @@ class Z80Tests {
       //Z80Tests.z80.setMemorySize(UInt(0x500))
       //Z80Tests.mmu.mapRAM(UInt(0x0000), UInt(0x500))
       //Z80Tests.PC = Z80Tests.z80.registers("PC").asInstanceOf[Register16]
-      val sb: StringBuilder = new StringBuilder
+      val sb: mutable.StringBuilder = new mutable.StringBuilder
       Z80Tests.z80.setOption("STOPONHALT", "true", sb)
       Utils.outln(sb.toString())
 
@@ -52,7 +54,7 @@ class Z80Tests {
     mmu.put8(0xff70, UByte(0xff.byteValue()))
     assertTrue(mmu.get8(0xff70) == 0x08) // Verify value did not change.
 
-    val sb = new StringBuilder
+    val sb = new mutable.StringBuilder
     z80.DAsm(0xff00, 0xffff, sb)
     Utils.out(sb.toString())
   }
@@ -443,7 +445,7 @@ class Z80Tests {
     z80.PC(0x0000)
 
     z80.runcpu()
-    assertEquals(0x01, z80.A.get8().intValue)
+    assertEquals(0x01, z80.A.get8().intValue())
   }
 
   @Test
@@ -477,9 +479,9 @@ class Z80Tests {
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
-    assertEquals(0xF0, z80.A.get8().intValue)
+    assertEquals(0xF0, z80.A.get8().intValue())
     assertEquals(0x0100, z80.HL.get16.intValue())
-    assertEquals(0xAF, z80.examine(z80.HL).intValue)
+    assertEquals(0xAF, z80.examine(z80.HL).intValue())
 
 
 
@@ -507,9 +509,9 @@ class Z80Tests {
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
-    assertEquals(0xFA, z80.A.get8().intValue)
+    assertEquals(0xFA, z80.A.get8().intValue())
     assertEquals(0x0100, z80.HL.get16.intValue())
-    assertEquals(0xF0, z80.examine(z80.HL).intValue)
+    assertEquals(0xF0, z80.examine(z80.HL).intValue())
 
   }
 
@@ -572,7 +574,7 @@ class Z80Tests {
     z80.PC(0x0000)
     z80.A(0x0A) // 10
     z80.runcpu()
-    assertEquals(0x0000, z80.A.get8().intValue)
+    assertEquals(0x0000, z80.A.get8().intValue())
     assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_S))
@@ -582,7 +584,7 @@ class Z80Tests {
     z80.PC(0x0000)
     z80.A(0x05)
     z80.runcpu()
-    assertEquals(0xFB, z80.A.get8().intValue)
+    assertEquals(0xFB, z80.A.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_N))
@@ -592,7 +594,7 @@ class Z80Tests {
     z80.PC(0x0003)
     z80.A(0x05)
     z80.runcpu()
-    assertEquals(0xFA, z80.A.get8().intValue)
+    assertEquals(0xFA, z80.A.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_N))
@@ -621,7 +623,7 @@ class Z80Tests {
 
     z80.runcpu()
     assertEquals(0x0007, z80.IX.get16.intValue())
-    assertEquals(0x02, z80.A.get8().intValue)
+    assertEquals(0x02, z80.A.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -646,7 +648,7 @@ class Z80Tests {
 
     z80.runcpu()
     assertEquals(0x0007, z80.IX.get16.intValue())
-    assertEquals(0x00, z80.A.get8().intValue)
+    assertEquals(0x00, z80.A.get8().intValue())
     assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -670,7 +672,7 @@ class Z80Tests {
 
     z80.runcpu()
     assertEquals(0x0007, z80.IX.get16.intValue())
-    assertEquals(0x00, z80.A.get8().intValue)
+    assertEquals(0x00, z80.A.get8().intValue())
     assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -694,7 +696,7 @@ class Z80Tests {
 
     z80.runcpu()
     assertEquals(0x0007, z80.IX.get16.intValue())
-    assertEquals(0xFF, z80.A.get8().intValue)
+    assertEquals(0xFF, z80.A.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -718,7 +720,7 @@ class Z80Tests {
 
     z80.runcpu()
     assertEquals(0x0007, z80.IY.get16.intValue())
-    assertEquals(0x00, z80.A.get8().intValue)
+    assertEquals(0x00, z80.A.get8().intValue())
     assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -741,7 +743,7 @@ class Z80Tests {
     z80.A(0x0A) // 10
     z80.IXH(0x0A) //10
     z80.runcpu()
-    assertEquals(0x0000, z80.A.get8().intValue)
+    assertEquals(0x0000, z80.A.get8().intValue())
     assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_S))
@@ -752,7 +754,7 @@ class Z80Tests {
     z80.A(0x05)
     z80.IXH(0x0A)
     z80.runcpu()
-    assertEquals(0xFB, z80.A.get8().intValue)
+    assertEquals(0xFB, z80.A.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_N))
@@ -763,7 +765,7 @@ class Z80Tests {
     z80.A(0x05)
     z80.IXH(0x0A)
     z80.runcpu()
-    assertEquals(0xFA, z80.A.get8().intValue)
+    assertEquals(0xFA, z80.A.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_N))
@@ -783,7 +785,7 @@ class Z80Tests {
     z80.B(0x01)
     z80.runcpu()
 
-    assertEquals(0x02, z80.B.get8().intValue)
+    assertEquals(0x02, z80.B.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -795,7 +797,7 @@ class Z80Tests {
     z80.B(0x81)
     z80.runcpu()
 
-    assertEquals(0x03, z80.B.get8().intValue)
+    assertEquals(0x03, z80.B.get8().intValue())
     assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -807,7 +809,7 @@ class Z80Tests {
     z80.B(0x00)
     z80.runcpu()
 
-    assertEquals(0x00, z80.B.get8().intValue)
+    assertEquals(0x00, z80.B.get8().intValue())
     assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
@@ -1239,7 +1241,7 @@ class Z80Tests {
     z80.deposit(0x010a, 0x40)
     z80.deposit(0x010b, 0xC9) // RET
 
-    val sb = new StringBuilder
+    val sb = new mutable.StringBuilder
     assertTrue({
       z80.DAsm(0x0000, sb)
       sb.toString == "LD C,A"
@@ -1611,10 +1613,10 @@ class Z80Tests {
     z80.PC(0xc000)
     z80.SP(0x3400)
     z80.runcpu()
-    assertEquals(0x00, z80.A.get8().intValue)
-    assertEquals(0x00, z80.F.get8().intValue)
-    assertEquals(0x34, z80.AP.get8().intValue)
-    assertEquals(0x12, z80.FP.get8().intValue)
+    assertEquals(0x00, z80.A.get8().intValue())
+    assertEquals(0x00, z80.F.get8().intValue())
+    assertEquals(0x34, z80.AP.get8().intValue())
+    assertEquals(0x12, z80.FP.get8().intValue())
 
   }
   @Test
@@ -1708,7 +1710,7 @@ class Z80Tests {
     z80.resetCPU()
     z80.PC(0xc000)
     z80.runcpu()
-    assertEquals(0x01, z80.A.get8().intValue)
+    assertEquals(0x01, z80.A.get8().intValue())
 
 
   }
@@ -1754,7 +1756,7 @@ class Z80Tests {
     z80.resetCPU()
     z80.PC(0xc000)
     z80.runcpu()
-    assertEquals(0xFF, z80.A.get8().intValue)
+    assertEquals(0xFF, z80.A.get8().intValue())
 
     // JR C
     addr = 0xD000
@@ -1795,7 +1797,7 @@ class Z80Tests {
     z80.resetCPU()
     z80.PC(0xd000)
     z80.runcpu()
-    assertEquals(0xFF, z80.A.get8().intValue)
+    assertEquals(0xFF, z80.A.get8().intValue())
   }
 
   @Test
@@ -1892,7 +1894,7 @@ class Z80Tests {
     z80.SP(0xc100)
     z80.runcpu()
 
-    assertEquals(0x01, z80.A.get8().intValue)
+    assertEquals(0x01, z80.A.get8().intValue())
     assertEquals(0Xc100, z80.SP.intValue())
 
   }
@@ -2017,7 +2019,7 @@ class Z80Tests {
     z80.PC(0xc000)
     z80.runcpu()
 
-    assertEquals(0x03, z80.A.get8().intValue)
+    assertEquals(0x03, z80.A.get8().intValue())
 
     // RET C / JP C
     addr = 0xC000
@@ -2096,7 +2098,7 @@ class Z80Tests {
     z80.PC(0xc000)
     z80.runcpu()
 
-    assertEquals(0x88, z80.A.get8().intValue)
+    assertEquals(0x88, z80.A.get8().intValue())
     // EXX / EX (SP),HL
     addr = 0xC000
     z80.deposit({
@@ -2163,7 +2165,7 @@ class Z80Tests {
 
     assertEquals(0x0001, z80.BCP.get16.intValue())
     assertEquals(0x0002, z80.DEP.get16.intValue())
-    assertEquals(0x0003, z80.LP.get8().intValue)
+    assertEquals(0x0003, z80.LP.get8().intValue())
     assertEquals(0x1234, z80.DE.get16.intValue())
 
     /*
@@ -2315,7 +2317,7 @@ class Z80Tests {
     z80.SP(0xc100)
     z80.runcpu()
 
-    assertEquals(0x01, z80.A.get8().intValue)
+    assertEquals(0x01, z80.A.get8().intValue())
     assertEquals(0xc100, z80.SP.intValue())
   }
   @Test
@@ -2372,7 +2374,7 @@ class Z80Tests {
     z80.SP(0xc100)
     z80.runcpu()
 
-    assertEquals(0x77, z80.A.intValue)
+    assertEquals(0x77, z80.A.intValue())
     assertEquals(0xE000, z80.HL.intValue())
     assertEquals(0xc100, z80.SP.intValue())
     assertEquals(0xe003, z80.PC.intValue())
@@ -2553,7 +2555,7 @@ class Z80Tests {
     z80.SP(0xc100)
     z80.runcpu()
 
-    assertEquals(0x80, z80.A.intValue)
+    assertEquals(0x80, z80.A.intValue())
     assertEquals(0xc100, z80.SP.intValue())
     // RET S / JP S / CALL S
     addr = 0xC000
@@ -2662,7 +2664,7 @@ class Z80Tests {
     z80.SP(0xc100)
     z80.runcpu()
 
-    assertEquals(0x12, z80.A.get8().intValue)
+    assertEquals(0x12, z80.A.get8().intValue())
     assertEquals(0xc100, z80.SP.intValue())
   }
 

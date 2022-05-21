@@ -32,7 +32,7 @@ class EventQueueTests {
     val el = EventQueue.getClockQueueList
 
     assertTrue(el.nonEmpty)
-    val tu = el(0)
+    val tu = el.head
     Utils.outln(s"Elem 1, time=${tu.time}")
     assertTrue(tu.time == 1)
     val tu2 = el(1)

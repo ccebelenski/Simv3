@@ -67,7 +67,7 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
   /* reg deltas */
   var last_pa: UInt = _ /* pa from ReadMW/ReadMB */
 
-  def calc_MMR1(val1: Int): Int = if (reg_mods != 0) ((val1 << 8) | reg_mods) else val1
+  def calc_MMR1(val1: Int): Int = if (reg_mods != 0) (val1 << 8) | reg_mods else val1
 
   val dsmask: Array[Int] = Array(MMR3_KDS, MMR3_SDS, 0, MMR3_UDS) /* dspace enables */
 
@@ -97,7 +97,7 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
   val PDR_ACS = 0x6 // 2b access control
   val PDR_ED = 0x8 // expansion dir
   val PDR_W = 0x40 // written flag
-  val PDR_A = UInt(0x80) // access flag
+  val PDR_A: UInt = UInt(0x80) // access flag
   val PDR_PLF = 0x7f00 // page lnt field
   val PDR_NOC = 0x8000 // don't cache
   val PDR_PRD = 0x3 // page readable if 2
@@ -268,7 +268,7 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
           MMR1.set16(reg_mods)
         if ((reg == 6) && (cpu.cm == cpu.MD_KER) && (adr < (cpu.STKLIM + PDP11.STKL_Y)))
           cpu.set_stack_trap(adr)
-        adr = ReadW(UInt(adr | ds)).toUShort()
+        adr = ReadW(UInt(adr | ds)).toUShort
         UInt(adr | dsenable)
 
       case 6 => /* d(r) */
@@ -545,7 +545,7 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
   def PWriteW(data: UInt, pa: UInt): Unit = {
     if (ADDR_IS_MEM(pa)) {
       /* memory address? */
-      put16(pa.intValue, data.toUShort())
+      put16(pa.intValue, data.toUShort)
       //      WrMemW(pa, data)
       return
     }
@@ -566,7 +566,7 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
   def PWriteB(data: UInt, pa: UInt): Unit = {
     if (ADDR_IS_MEM(pa)) {
       /* memory address? */
-      put8(pa.intValue, data.toUByte())
+      put8(pa.intValue, data.toUByte)
       //WrMemB(pa, data)
       return
     }

@@ -1,16 +1,18 @@
 package com.sim.device
 
+import scala.collection.mutable
+
 abstract class UnitOption(val optionName: String, val optionDescription: String) {
 
   def copy: UnitOption
 
   def formatValue: String
 
-  def showOption(sb: StringBuilder): Unit = {
+  def showOption(sb: mutable.StringBuilder): Unit = {
     sb.append(s"  Option: ${optionName.toUpperCase} \t\t$optionDescription\t$formatValue\n\r")
   }
 
-  def setFromString(s: String, sb: StringBuilder): Boolean
+  def setFromString(s: String, sb: mutable.StringBuilder): Boolean
 
   def optionHelp: String
 }
@@ -31,7 +33,7 @@ case class BinaryUnitOption(override val optionName: String, override val option
     BinaryUnitOption(optionName, optionDescription, value)
   }
 
-  override def setFromString(s: String, sb: StringBuilder): Boolean = {
+  override def setFromString(s: String, sb: mutable.StringBuilder): Boolean = {
     try {
       value = s.toBoolean
       true
@@ -59,7 +61,7 @@ case class ValueUnitOption(override val optionName: String, override val optionD
     ValueUnitOption(optionName, optionDescription, value)
   }
 
-  override def setFromString(s: String, sb: StringBuilder): Boolean = {
+  override def setFromString(s: String, sb: mutable.StringBuilder): Boolean = {
     try {
       value = s.toInt
       true
@@ -92,14 +94,14 @@ case class EnumValueUnitOption(override val optionName: String,
   }
 
   override def optionHelp: String = {
-    val sb = new StringBuilder
+    val sb = new mutable.StringBuilder
     sb.append(s"${optionName.toUpperCase} is value.  Valid values are:\n\r")
     values.foreach(x => sb.append(s"${x.name}\n\r"))
 
     sb.toString()
   }
 
-  override def setFromString(s: String, sb: StringBuilder): Boolean = {
+  override def setFromString(s: String, sb: mutable.StringBuilder): Boolean = {
     val current = values.find(v => v.value)
     val option = values.find(v => v.name == s)
     if (option.isDefined) {
@@ -126,7 +128,7 @@ case class RangeValueUnitOption(override val optionName: String, override val op
     RangeValueUnitOption(optionName, optionDescription, lowValue, highValue, currentValue)
   }
 
-  override def setFromString(s: String, sb: StringBuilder): Boolean = ???
+  override def setFromString(s: String, sb: mutable.StringBuilder): Boolean = ???
 
   override def optionHelp: String = s"${optionName.toUpperCase} is value.  Valid values are integer numbers in range $lowValue to $highValue"
 
@@ -145,7 +147,7 @@ case class StringValueUnitOption(override val optionName: String, override val o
     StringValueUnitOption(optionName, optionDescription, value)
   }
 
-  override def setFromString(s: String, sb: StringBuilder): Boolean = {
+  override def setFromString(s: String, sb: mutable.StringBuilder): Boolean = {
     try {
       value = s
       true

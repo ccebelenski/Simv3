@@ -4,10 +4,12 @@ import com.sim.SimTimer
 import com.sim.cpu.{BasicCPU, Register, Register16}
 import com.sim.device.{BinaryUnitOption, ValueUnitOption}
 import com.sim.machine.AbstractMachine
-import com.sim.unsigned._
+import com.sim.unsigned.*
 import com.sim.unsigned.ushort2uint
 import com.sim.unsigned.ushort2Int
 import com.sim.unsigned.uint2int
+
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMachine) extends BasicCPU(isBanked, machine) {
@@ -21,11 +23,11 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
 
     unitOptions.append(BinaryUnitOption("BANKED", "Enable banked memory.", value = true))
     unitOptions.append(BinaryUnitOption("STOPONHALT", "Break on HALT instruction.", value = false))
-    unitOptions.append(ValueUnitOption("MEMORY", "Set the RAM size.", value = (0xFFFF)))
+    unitOptions.append(ValueUnitOption("MEMORY", "Set the RAM size.", value = 0xFFFF))
 
   }
 
-  override def showCommand(stringBuilder: StringBuilder): Unit = {
+  override def showCommand(stringBuilder: mutable.StringBuilder): Unit = {
     super.showCommand(stringBuilder)
   }
 
@@ -141,7 +143,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
                   }
                 )
                 oldrs = rs
-                put_PSW(src2.intValue, (cm != MD_KER)) /* store PSW, prot */
+                put_PSW(src2.intValue, cm != MD_KER) /* store PSW, prot */
                 if (rs != oldrs) {
                   for (i <- 0 to 6) {
                     REGFILE(i)(oldrs) = R(i)
@@ -255,7 +257,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
             if (!(N ^ V)) BRANCH_F(IR)
 
           case 0x12 | 0x13 => /* BGE */
-            if ((N ^ V) == false) BRANCH_B(IR)
+            if (!(N ^ V)) BRANCH_B(IR)
 
           case 0x14 | 0x15 => /* BLT */
             if (N ^ V) BRANCH_F(IR)
@@ -264,10 +266,10 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
             if (N ^ V) BRANCH_B(IR)
 
           case 0x18 | 0x19 => /* BGT */
-            if ((Z | (N ^ V)) == false) BRANCH_F(IR)
+            if (!(Z | (N ^ V))) BRANCH_F(IR)
 
           case 0x1a | 0x1b => /* BGT */
-            if ((Z | (N ^ V)) == false) BRANCH_B(IR)
+            if (!(Z | (N ^ V))) BRANCH_B(IR)
 
           case 0x1c | 0x1d => /* BLE */
             if (Z | (N ^ V)) BRANCH_F(IR)
@@ -787,7 +789,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
                 dst = src << src2
                 // TODO Check logic
                 // i = (src >> (32 - src2)) | (-sign << src2)
-                V = (if (i != (dst & 0x80000000)) true else false)
+                V = if (i != (dst & 0x80000000)) true else false
                 C = CHECK_C(i & 1)
               }
               else if (src2 == 32) {
@@ -936,7 +938,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
           case 0x29 => /* COMB */
             dst = if (dstreg) R(dstspec).get16 else MMU.ReadMB(MMU.GeteaB(UInt(dstspec)))
             dst = UInt((dst ^ 0xff) & 0xff)
-            N = CHECK_C(GET_SIGN_B(dst.toUByte()))
+            N = CHECK_C(GET_SIGN_B(dst.toUByte))
             Z = GET_Z(dst)
             V = false
             C = true
@@ -1310,7 +1312,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
   val MD_UND = 2
   val MD_USR = 3
 
-  val STKLIM_RW = UInt(0xff00)
+  val STKLIM_RW: UInt = UInt(0xff00)
 
   /* Register change tracking actually goes into variable reg_mods; from there
      it is copied into MMR1 if that register is not currently locked.  */
@@ -1325,7 +1327,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
   }
 
   def GET_SIGN_B(v: UByte): Int = {
-    ((v >> 7) & 1)
+    (v >> 7) & 1
   }
 
   def GET_SIGN_B(v: Int): Int = GET_SIGN_B(UByte(v.toByte))
@@ -1483,7 +1485,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
   val DLNT_M = 0x1f // length mask
   val DLNT_V = 0 // length position
 
-  def GET_DTYP(x: Int) = {
+  def GET_DTYP(x: Int): Int = {
     (x >> DTYP_V) & DTYP_M
   }
 
@@ -1514,7 +1516,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
   /* Decimal string structure */
 
   private val DSTRLNT = 4
-  private val DSTRMAX = (DSTRLNT - 1)
+  private val DSTRMAX = DSTRLNT - 1
   private val MAXDVAL = 429496730 // 2^32 / 10
 
   class DSTR {
@@ -1673,7 +1675,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
     var src2: DSTR = new DSTR
     var dst: DSTR = new DSTR
     var mptable: Array[DSTR] = new Array(10)
-    var Dstr1: DSTR = new DSTR //{ 0, {0x10, 0, 0, 0} }
+    val Dstr1: DSTR = new DSTR //{ 0, {0x10, 0, 0, 0} }
     Dstr1.val0 = Array(0x10, 0, 0, 0)
 
 
@@ -1686,13 +1688,13 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
 
   override def showFlags(): String = ???
 
-  override def DAsm(addr: Int, sb: StringBuilder): Int = ???
+  override def DAsm(addr: Int, sb: mutable.StringBuilder): Int = ???
 
   override def init(): Unit = {} // TODO
 
   override def handles(value: UInt): Boolean = ???
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   override val registers: Map[String, Register] = ???
 
@@ -1745,9 +1747,9 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
       // TODO PSW = d & cpu_tab[cpu_model].psw;
       return
     }
-    var curr = get_PSW
+    val curr = get_PSW
     /* get current */
-    var oldrs = rs /* save reg set */
+    val oldrs = rs /* save reg set */
     STACKFILE(cm)(SP.get16) /* save curr SP */
     if (access == MMU.WRITEB) d = {
       if ((pa & 1) != 0) (curr & 0xff) | (d << 8) else (curr & ~0xff) | d
@@ -1859,7 +1861,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
         c = c & 0xF /* get digit */
         if (c > 9) /* range check */
           c = 0;
-        src.val0(i / 8) = src.val0(i / 8) | (c << ((i % 8) * 4));
+        src.val0(i / 8) = src.val0(i / 8) | (c << ((i % 8) * 4))
       } /* end for */
     } /* end numeric */
     TestDstr(src) /* clean -0 */
@@ -1980,7 +1982,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
       val sm1 = s1.val0(i) + (s2.val0(i) + cy2)
       /* sum operands */
       val sm2 = sm1 + 0x66666666 /* force carry out */
-      cy2 = (if (sm1 < s1.val0(i) || (sm2 < sm1)) 1 else 0)
+      cy2 = if (sm1 < s1.val0(i) || (sm2 < sm1)) 1 else 0
       /* check for overflow */
       val tm2 = tm1 ^ sm2
       /* get carry flags */
@@ -2006,7 +2008,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
     val complX: DSTR = new DSTR
 
     for (i <- 0 to DSTRLNT) complX.val0(i) = 0x99999999 - s1.val0(i)
-    AddDstr(complX, s2, ds, 1);
+    AddDstr(complX, s2, ds, 1)
     /* s1 + ~s2 + 1 */
   }
 
@@ -2034,7 +2036,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
 
   def TestDstr(dsrc: DSTR): Int = {
     for (i <- 0 to DSTRMAX) {
-      if (dsrc.val0(i) != 0) return (i + 1)
+      if (dsrc.val0(i) != 0) return i + 1
     }
     dsrc.sign = 0
     0
@@ -2155,7 +2157,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
 
   /* Common setup routine for MOVC class instructions */
 
-  def movx_setup(op: Int, arg: Array[Int]) = {
+  def movx_setup(op: Int, arg: Array[Int]): UInt = {
     //int32 mvlnt, t;
     var mvlnt: UInt = UInt(0)
 
@@ -2194,7 +2196,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
     N = CHECK_C(GET_SIGN_W(UInt(t))) /* set cc's from diff */
     Z = GET_Z(UInt(t))
     V = CHECK_C(GET_SIGN_W(UInt((R(0).get16 ^ R(2).get16) & (~R(2).get16 ^ t))))
-    C = (R(0).get16 < R(2).get16)
+    C = R(0).get16 < R(2).get16
     mvlnt
   }
 

@@ -83,28 +83,28 @@ abstract class S100HDiskParamsBase {
    */
 
   // Skew tables
-  var standard8: Array[Int] = Array(0, 6, 12, 18, 24, 4, 10, 16,
+  val standard8: Array[Int] = Array(0, 6, 12, 18, 24, 4, 10, 16,
     22, 2, 8, 14, 20, 1, 7, 13,
     19, 25, 5, 11, 17, 23, 3, 9,
     15, 21)
 
-  var apple_ii_DOS: Array[Int] = Array(0, 6, 12, 3, 9, 15, 14, 5,
+  val apple_ii_DOS: Array[Int] = Array(0, 6, 12, 3, 9, 15, 14, 5,
     11, 2, 8, 7, 13, 4, 10, 1)
 
-  var apple_ii_DOS2: Array[Int] = Array(0, 1, 12, 13, 24, 25, 6, 7,
+  val apple_ii_DOS2: Array[Int] = Array(0, 1, 12, 13, 24, 25, 6, 7,
     18, 19, 30, 31, 28, 29, 10, 11,
     22, 23, 4, 5, 16, 17, 14, 15,
     26, 27, 8, 9, 20, 21, 2, 3)
 
-  var apple_ii_PRODOS: Array[Int] = Array(0, 9, 3, 12, 6, 15, 1, 10,
+  val apple_ii_PRODOS: Array[Int] = Array(0, 9, 3, 12, 6, 15, 1, 10,
     4, 13, 7, 8, 2, 11, 5, 14)
 
-  var apple_ii_PRODOS2: Array[Int] = Array(0, 1, 18, 19, 6, 7, 24, 25,
+  val apple_ii_PRODOS2: Array[Int] = Array(0, 1, 18, 19, 6, 7, 24, 25,
     12, 13, 30, 31, 2, 3, 20, 21,
     8, 9, 26, 27, 14, 15, 16, 17,
     4, 5, 22, 23, 10, 11, 28, 29)
 
-  var mits: Array[Int] = Array(0, 17, 2, 19, 4, 21, 6, 23,
+  val mits: Array[Int] = Array(0, 17, 2, 19, 4, 21, 6, 23,
     8, 25, 10, 27, 12, 29, 14, 31,
     16, 1, 18, 3, 20, 5, 22, 7,
     24, 9, 26, 11, 28, 13, 30, 15)

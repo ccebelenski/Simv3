@@ -123,7 +123,7 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
 
   }
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   var laststat08 = 0
 
@@ -362,7 +362,7 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
   The boot routine modifies the boot ROM in such as way that the specified disk is
   used for booting.
    */
-  override def boot(unitno: Int, sb: StringBuilder): Boolean = {
+  override def boot(unitno: Int, sb: mutable.StringBuilder): Boolean = {
 
     val unit = findUnitByNumber(unitno).asInstanceOf[Option[S100FD400Unit]]
     if (unit.isEmpty || !unit.get.isAvailable) {
@@ -403,9 +403,9 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
   // Perform a port action
   def action(action: UInt, value: UByte, isWrite: Boolean): UByte = {
     action.intValue match {
-      case 0x08 => UByte(dsk08(value.intValue, isWrite).byteValue())
-      case 0x09 => UByte(dsk09(value.intValue, isWrite).byteValue())
-      case 0x0A => UByte(dsk0a(value.intValue, isWrite).byteValue())
+      case 0x08 => UByte(dsk08(value.intValue(), isWrite).byteValue())
+      case 0x09 => UByte(dsk09(value.intValue(), isWrite).byteValue())
+      case 0x0A => UByte(dsk0a(value.intValue(), isWrite).byteValue())
       case _ => UByte(0)
     }
   }

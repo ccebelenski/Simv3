@@ -1,13 +1,14 @@
 package com.sim.device
 
-import java.nio._
+import java.nio.*
 import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption._
+import java.nio.file.StandardOpenOption.*
 import java.nio.file.{Files, OpenOption, Path, Paths}
 import java.util
-
 import com.sim.Utils
 import com.sim.unsigned.UByte
+
+import scala.collection.mutable
 
 /**
   * Created by christophercebelenski on 7/18/16.
@@ -119,7 +120,7 @@ trait DiskUnit extends BasicUnit with UnitAttachable with SupportsOptions {
   // Override this to set drive attributes during attach()
   def setDriveAttributes(path:Path) : Unit = {}
 
-  override def detach(sb: StringBuilder): Boolean = {
+  override def detach(sb: mutable.StringBuilder): Boolean = {
 
     if (!isAvailable) {
       sb.append(s"$getName: Unit is not attached.")

@@ -56,7 +56,7 @@ protected object CPUOPT {
   val CPUT_JB: UInt = CPUT_73B | CPUT_83 | CPUT_84 // KDJ11B
   val CPUT_JE: UInt = CPUT_93 | CPUT_94 //KDJ11E
   val CPUT_JU: UInt = CPUT_84 | CPUT_94 // KTJ11B UBA
-  val CPUT_ALL = UInt(0xFFFFFFFF)
+  val CPUT_ALL: UInt = UInt(0xFFFFFFFF)
 
 
   /* CPU options */
@@ -132,27 +132,27 @@ protected object CPUOPT {
 
   val SOP_1103: UInt = BUS_Q | OPT_BVT
   val OPT_1103: UInt = OPT_EIS | OPT_FIS | OPT_BVT
-  val PSW_1103 = UInt(0xff)
+  val PSW_1103: UInt = UInt(0xff)
 
   val SOP_1104: UInt = BUS_U
-  val OPT_1104 = UInt(0)
-  val PSW_1104 = UInt(0xff)
+  val OPT_1104: UInt = UInt(0)
+  val PSW_1104: UInt = UInt(0xff)
 
   val SOP_1105: UInt = BUS_U
-  val OPT_1105 = UInt(0)
-  val PSW_1105 = UInt(0xff)
+  val OPT_1105: UInt = UInt(0)
+  val PSW_1105: UInt = UInt(0xff)
 
   val SOP_1120: UInt = BUS_U
-  val OPT_1120 = UInt(0)
-  val PSW_1120 = UInt(0xff)
+  val OPT_1120: UInt = UInt(0)
+  val PSW_1120: UInt = UInt(0xff)
 
   val SOP_1123: UInt = BUS_Q | OPT_EIS | OPT_FPP | OPT_MMU | OPT_BVT
   val OPT_1123: UInt = OPT_FPP | OPT_CIS | OPT_BVT
-  val PSW_F = UInt(0xf1ff)
-  val PAR_F = UInt(0xffff)
-  val PDR_F = UInt(0x7f4e)
-  val MM0_F = UInt(0xe06f)
-  val MM3_F = UInt(0x30)
+  val PSW_F: UInt = UInt(0xf1ff)
+  val PAR_F: UInt = UInt(0xffff)
+  val PDR_F: UInt = UInt(0x7f4e)
+  val MM0_F: UInt = UInt(0xe06f)
+  val MM3_F: UInt = UInt(0x30)
 
   val SOP_1123P: UInt = BUS_Q | OPT_EIS | OPT_FPP | OPT_MMU
   val OPT_1123P: UInt = OPT_FPP | OPT_CIS
@@ -162,56 +162,56 @@ protected object CPUOPT {
 
   val SOP_1134: UInt = BUS_U | OPT_EIS | OPT_MMU
   val OPT_1134: UInt = OPT_FPP
-  val PSW_1134 = UInt(0xf0ff)
-  val PAR_1134 = UInt(0xfff)
-  val PDR_1134 = UInt(0x7f4e)
-  val MM0_1134 = UInt(0xe16f)
+  val PSW_1134: UInt = UInt(0xf0ff)
+  val PAR_1134: UInt = UInt(0xfff)
+  val PDR_1134: UInt = UInt(0x7f4e)
+  val MM0_1134: UInt = UInt(0xe16f)
 
   val SOP_1140: UInt = BUS_U | OPT_EIS | OPT_MMU
   val OPT_1140: UInt = OPT_FIS
-  val PSW_1140 = UInt(0xf0ff)
-  val PAR_1140 = UInt(0xfff)
-  val PDR_1140 = UInt(0x7f4e)
-  val MM0_1140 = UInt(0xe16f)
+  val PSW_1140: UInt = UInt(0xf0ff)
+  val PAR_1140: UInt = UInt(0xfff)
+  val PDR_1140: UInt = UInt(0x7f4e)
+  val MM0_1140: UInt = UInt(0xe16f)
 
   val SOP_1144: UInt = BUS_U | OPT_EIS | OPT_FPP | OPT_MMU | OPT_UBM
   val OPT_1144: UInt = OPT_FPP | OPT_CIS
-  val PSW_1144 = UInt(0xf1ff)
-  val PAR_1144 = UInt(0xffff)
-  val PDR_1144 = UInt(0xff4e)
-  val MM0_1144 = UInt(0xe16f)
-  val MM3_1144 = UInt(0x3f)
+  val PSW_1144: UInt = UInt(0xf1ff)
+  val PAR_1144: UInt = UInt(0xffff)
+  val PDR_1144: UInt = UInt(0xff4e)
+  val MM0_1144: UInt = UInt(0xe16f)
+  val MM3_1144: UInt = UInt(0x3f)
 
   val SOP_1145: UInt = BUS_U | OPT_EIS | OPT_FPP | OPT_MMU | OPT_RH11
   val OPT_1145: UInt = OPT_FPP
-  val PSW_1145 = UInt(0xf8ff)
-  val PAR_1145 = UInt(0xfff)
-  val PDR_1145 = UInt(0x7fcf)
-  val MM0_1145 = UInt(0xf3ff)
-  val MM3_1145 = UInt(0x7)
+  val PSW_1145: UInt = UInt(0xf8ff)
+  val PAR_1145: UInt = UInt(0xfff)
+  val PDR_1145: UInt = UInt(0x7fcf)
+  val MM0_1145: UInt = UInt(0xf3ff)
+  val MM3_1145: UInt = UInt(0x7)
 
   val SOP_1160: UInt = BUS_U | OPT_EIS | OPT_FPP | OPT_MMU
-  val OPT_1160 = UInt(0)
-  val PSW_1160 = UInt(0xf0ff)
-  val PAR_1160 = UInt(0xfff)
-  val PDR_1160 = UInt(0x7f4e)
-  val MM0_1160 = UInt(0xe16f)
+  val OPT_1160: UInt = UInt(0)
+  val PSW_1160: UInt = UInt(0xf0ff)
+  val PAR_1160: UInt = UInt(0xfff)
+  val PDR_1160: UInt = UInt(0x7f4e)
+  val MM0_1160: UInt = UInt(0xe16f)
 
   val SOP_1170: UInt = BUS_U | OPT_EIS | OPT_FPP | OPT_MMU | OPT_UBM
   val OPT_1170: UInt = OPT_FPP | OPT_RH11
-  val PSW_1170 = UInt(0xf8ff)
-  val PAR_1170 = UInt(0xffff)
-  val PDR_1170 = UInt(0x7fcf)
-  val MM0_1170 = UInt(0xf3ff)
-  val MM3_1170 = UInt(0x37)
+  val PSW_1170: UInt = UInt(0xf8ff)
+  val PAR_1170: UInt = UInt(0xffff)
+  val PDR_1170: UInt = UInt(0x7fcf)
+  val MM0_1170: UInt = UInt(0xf3ff)
+  val MM3_1170: UInt = UInt(0x37)
 
   val SOP_1173: UInt = BUS_Q | OPT_EIS | OPT_FPP | OPT_MMU
   val OPT_1173: UInt = OPT_CIS
-  val PSW_J = UInt(0xf9ff)
-  val PAR_J = UInt(0xffff)
-  val PDR_J = UInt(0xff4e)
-  val MM0_J = UInt(0xe07f)
-  val MM3_J = UInt(0x3f)
+  val PSW_J: UInt = UInt(0xf9ff)
+  val PAR_J: UInt = UInt(0xffff)
+  val PDR_J: UInt = UInt(0xff4e)
+  val MM0_J: UInt = UInt(0xe07f)
+  val MM3_J: UInt = UInt(0x3f)
 
   val SOP_1153: UInt = BUS_Q | OPT_EIS | OPT_FPP | OPT_MMU
   val OPT_1153: UInt = OPT_CIS
@@ -233,10 +233,10 @@ protected object CPUOPT {
 
   /* MFPT codes */
 
-  val MFPT_44 = UInt(1)
-  val MFPT_F = UInt(3)
-  val MFPT_T = UInt(4)
-  val MFPT_J = UInt(5)
+  val MFPT_44: UInt = UInt(1)
+  val MFPT_F: UInt = UInt(3)
+  val MFPT_T: UInt = UInt(4)
+  private val MFPT_J = UInt(5)
 
   val cpu_tab: Array[CPUTAB] = Array(
     CPUTAB("11/03", SOP_1103, OPT_1103, PDP11.MEMSIZE64K, PSW_1103, UInt(0), UInt(0), UInt(0), UInt(0), UInt(0)),

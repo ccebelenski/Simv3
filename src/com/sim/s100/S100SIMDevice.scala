@@ -8,9 +8,11 @@ import com.sim.unsigned.ubyte2Int
 import com.sim.unsigned.uint2int
 import com.sim.unsigned.ushort2Int
 import com.sim.unsigned.ubyte2uint
+
 import java.util
 import java.util.{Calendar, Date, GregorianCalendar}
 import scala.annotation.switch
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 /**
@@ -20,7 +22,7 @@ import scala.language.implicitConversions
 class S100SIMDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extends PortMappedDevice(machine, mmu, ports) {
   override def action(action: UInt, value: UByte, isWrite: Boolean): UByte = {
 
-    action.toInt() match {
+    action.toInt match {
       case 0xfe =>
         if (isWrite) simh_out(value)
         else simh_in(value)
@@ -38,7 +40,7 @@ class S100SIMDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
 
   override def createUnitOptions(): Unit = {}
 
-  override def optionChanged(sb: StringBuilder): Unit = {}
+  override def optionChanged(sb: mutable.StringBuilder): Unit = {}
 
   private var lastCommand: Int = 0x00
 
@@ -311,8 +313,8 @@ class S100SIMDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
       case _ => /* lastCommand not yet set */
       // ignored
     }
-    lastCommand = data.toInt()
-    data.toInt() match {
+    lastCommand = data.toInt
+    data.toInt match {
       case `readURLCmd` =>
         urlPointer = 0
         isInReadPhase = false

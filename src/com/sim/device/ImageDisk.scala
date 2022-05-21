@@ -2,8 +2,9 @@ package com.sim.device
 
 import java.nio.ByteBuffer
 import java.nio.file.Path
-
 import com.sim.Utils
+
+import scala.collection.mutable
 
 /*
 IMAGE FILE FORMAT
@@ -166,7 +167,7 @@ trait ImageDisk {
   var diskInfo: DiskInfo = new DiskInfo()
   var diskComment: Option[String] = None
 
-  final def isIMD(): Boolean = {
+  final def isIMD: Boolean = {
     IMAGE_TYPE == IMAGE_TYPE_IMD
   }
 
@@ -193,7 +194,7 @@ trait ImageDisk {
     if (!disk.fileChannel.isOpen) return None
     // rewind to beginning
     disk.fileChannel.position(0)
-    val sb = new StringBuilder
+    val sb = new mutable.StringBuilder
     // If we don't find the terminator in the first 1k then we will fail...
     // Just for simplicity, as I suppose some weirdness could happen.
     val buf = ByteBuffer.allocate(1024)
@@ -399,7 +400,7 @@ trait ImageDisk {
             if (sectorMap(i) - start_sect < MAX_SPT) {
               diskInfo.track(imd.cyl)(imd.head).sectorOffsetMap(sectorMap(i) - start_sect) = diskUnit.fileChannel.position().intValue()
               diskUnit.isWriteProtect
-              diskUnit.setOption("READONLY", "TRUE", new StringBuilder) //Write-protect the disk if any sectors are compressed.
+              diskUnit.setOption("READONLY", "TRUE", new mutable.StringBuilder) //Write-protect the disk if any sectors are compressed.
 
               val cbuf = ByteBuffer.allocate(1)
               diskUnit.fileChannel.read(cbuf)
@@ -669,7 +670,7 @@ trait ImageDisk {
     }
 
     val stbuf = ByteBuffer.allocate(1)
-    stbuf.put(sectRecordType.toByte)
+    stbuf.put(sectRecordType)
     unit.fileChannel.write(stbuf)
     stbuf.clear()
     //fputc(sectRecordType, myDisk->file);
@@ -696,7 +697,7 @@ trait ImageDisk {
    *
    */
   def trackWrite(unit: DiskUnit, Cyl: Int, Head: Int, numSectors: Int, sectorLen: Int, sectorMap: Array[Byte], mode: Int, fillbyte: Byte): Int = {
-    var track_header: IMD_HEADER = new IMD_HEADER()
+    val track_header: IMD_HEADER = new IMD_HEADER()
     var flags = 0
 
     if (unit.isWriteProtect) {
@@ -756,7 +757,7 @@ trait ImageDisk {
     val dataLen = sectorLen + 1
     val sectorData = ByteBuffer.allocate(dataLen)
     //memset(sectorData, fillbyte, dataLen);
-    sectorData.put(SECT_RECORD_NORM.toByte)
+    sectorData.put(SECT_RECORD_NORM)
     while (sectorData.hasRemaining) sectorData.put(fillbyte)
 
     /* For each sector on the track, write the record type and sector data. */

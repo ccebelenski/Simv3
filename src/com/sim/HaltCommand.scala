@@ -2,13 +2,15 @@ package com.sim
 
 import com.sim.machine.AbstractMachine
 
+import scala.collection.mutable
+
 class HaltCommand extends Command {
   commandToken = "HALT"
   commandDescription = "Halts a running CPU"
   commandHelpText = "HA<LT>"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if(Console.cpuRunning) {
       Console.simEnvironment.simMachine match {
         case None => sb.append("SIM: No machine.  SET a MACHINE.")

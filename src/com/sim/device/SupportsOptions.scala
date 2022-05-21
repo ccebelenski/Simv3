@@ -1,5 +1,6 @@
 package com.sim.device
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 trait SupportsOptions {
@@ -33,22 +34,20 @@ trait SupportsOptions {
     } else None
   }
 
-  def setOption(optionName: String, optionValue: String, sb: StringBuilder): Boolean = {
+  def setOption(optionName: String, optionValue: String, sb: mutable.StringBuilder): Boolean = {
     // First find the option - if we don't find it, then we're done already
     var optionsChanged = false
     try {
       val option = getOption(optionName)
       option match {
         case None => sb.append(s"SIM: Option $optionName is not valid and is ignored.")
-        case Some(o: UnitOption) => {
+        case Some(o: UnitOption) =>
           // Found a valid matching option - now try and set it
           val result = o.setFromString(optionValue, sb)
           if (result) {
             sb.append(s"SIM: ${o.optionName} set: $optionValue\n\r")
             optionsChanged = true
           }
-
-        }
       }
       optionsChanged
     } catch {
@@ -59,6 +58,6 @@ trait SupportsOptions {
   }
 
   // Callback routine when an option has changed.  The device/unit/whatever can decide what to do.
-  def optionChanged(sb: StringBuilder): Unit
+  def optionChanged(sb: mutable.StringBuilder): Unit
 
 }

@@ -10,7 +10,7 @@ import scala.collection.mutable
 
 class CharacterListener(val model: AbstractTerminalModel, parent: JComponent) extends KeyListener {
 
-  private val cmdBuffer = new StringBuilder
+  private val cmdBuffer = new mutable.StringBuilder
   private var cmdPosition = 0
 
   private val recallBuffer = new mutable.ListBuffer[String]
@@ -19,7 +19,7 @@ class CharacterListener(val model: AbstractTerminalModel, parent: JComponent) ex
 
 
   private val ESC = 0x1b.toChar
-  private val CSI = s"${ESC}["
+  private val CSI = s"$ESC["
 
   override def keyTyped(e: KeyEvent): Unit = {}
 

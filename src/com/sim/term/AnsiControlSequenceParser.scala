@@ -1,7 +1,8 @@
 package com.sim.term
 
 import java.io.{IOException, Reader, StringReader}
-import scala.util.control.Breaks._
+import scala.collection.mutable
+import scala.util.control.Breaks.*
 
 class AnsiControlSequenceParser(val listener: AnsiControlSequenceListener) {
   /**
@@ -18,7 +19,7 @@ class AnsiControlSequenceParser(val listener: AnsiControlSequenceListener) {
    * The buffer of data from the last call to parse. This is
    * populated with data if an escape sequence is not complete.
    */
-  private var buffer = new StringBuilder
+  private var buffer = new mutable.StringBuilder
 
   /**
    * Parses a control sequence.
@@ -29,7 +30,7 @@ class AnsiControlSequenceParser(val listener: AnsiControlSequenceListener) {
   @throws[IOException]
   private def parseControlSequence(reader: Reader): Unit = {
     var finishedSequence :Boolean= false
-    val parameters:StringBuilder = new StringBuilder
+    val parameters:mutable.StringBuilder = new mutable.StringBuilder
     var character:Int  = 0
     breakable {
       while ( {
@@ -67,7 +68,7 @@ class AnsiControlSequenceParser(val listener: AnsiControlSequenceListener) {
    */
   @throws[IOException]
   private def parse(reader: Reader): Unit = {
-    var text = new StringBuilder
+    var text = new mutable.StringBuilder
     var character = 0
     breakable {
       while ( {
@@ -93,7 +94,7 @@ class AnsiControlSequenceParser(val listener: AnsiControlSequenceListener) {
         if (introducedControlSequence) {
           if (text.nonEmpty) {
             listener.parsedString(text.toString)
-            text = new StringBuilder
+            text = new mutable.StringBuilder
           }
           parseControlSequence(reader)
         }
@@ -111,7 +112,7 @@ class AnsiControlSequenceParser(val listener: AnsiControlSequenceListener) {
     val s =
       if (buffer.nonEmpty) {
         val t  = buffer.toString.concat(str)
-        buffer = new StringBuilder
+        buffer = new mutable.StringBuilder
         t
       } else str
     val reader = new StringReader(s)

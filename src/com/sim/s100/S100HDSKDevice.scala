@@ -35,7 +35,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
   var hostSector: Int = 0
 
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   override def createUnitOptions(): Unit = {
 
@@ -108,9 +108,9 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
     }
 
     if (hdskLastCommand == HDSK_READ) {
-      Utils.outlnd(current_disk.get, s"Read Track=${cd.current_track} Sector=${cd.current_sector} Len=${current_disk.get.HDSK_SECTOR_SIZE} DMA=${selectedDMA}")
+      Utils.outlnd(current_disk.get, s"Read Track=${cd.current_track} Sector=${cd.current_sector} Len=${current_disk.get.HDSK_SECTOR_SIZE} DMA=$selectedDMA")
     } else if (hdskLastCommand == HDSK_WRITE) {
-      Utils.outlnd(current_disk.get, s"Write Track=${cd.current_track} Sector=${cd.current_sector} Len=${current_disk.get.HDSK_SECTOR_SIZE} DMA=${selectedDMA}")
+      Utils.outlnd(current_disk.get, s"Write Track=${cd.current_track} Sector=${cd.current_sector} Len=${current_disk.get.HDSK_SECTOR_SIZE} DMA=$selectedDMA")
     }
     true
   }
@@ -152,7 +152,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
   val parameterBlock: Array[UByte] = Array.ofDim(PARAMETER_BLOCK_SIZE)
 
   def hdsk_in(port: UInt): UByte = {
-    Utils.outlnd(this, s"IN POS:$hdskCommandPosition L:$hdskLastCommand P:$hdskCommandPosition C/F:${machine.getCPU.PC.intValue.toHexString}")
+    Utils.outlnd(this, s"IN POS:$hdskCommandPosition L:$hdskLastCommand P:$hdskCommandPosition C/F:${machine.getCPU.PC.intValue().toHexString}")
     if ((hdskCommandPosition == 6) && ((hdskLastCommand == HDSK_READ) || (hdskLastCommand == HDSK_WRITE))) {
       val result = if (hdsk_checkParameters()) {
         Utils.outlnd(this, "Going to READ/WRITE")
@@ -178,7 +178,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
 
   def hdsk_out(port: UInt, data: UByte): UByte = {
 
-    Utils.outlnd(this,s"OUT DATA:${data.intValue} L:$hdskLastCommand P:$hdskCommandPosition C/F:${machine.getCPU.PC.intValue.toHexString}")
+    Utils.outlnd(this,s"OUT DATA:${data.intValue()} L:$hdskLastCommand P:$hdskCommandPosition C/F:${machine.getCPU.PC.intValue().toHexString}")
     var current: S100HDiskParamsBase = null
 
     hdskLastCommand match {
@@ -186,7 +186,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
       case HDSK_PARAM =>
         Utils.outlnd(this, "PARAM")
         parameterCount = 0
-        val thisDisk = if ((0 <= data) && (data < S100HDSKDevice.HDSK_NUMBER)) data.intValue else 0
+        val thisDisk = if ((0 <= data) && (data < S100HDSKDevice.HDSK_NUMBER)) data.intValue() else 0
         val unit = findUnitByNumber(thisDisk).asInstanceOf[Option[S100HDSKUnit]]
         if (unit.get.isAvailable) {
           current = unit.get.HDSK_FORMAT_TYPE.get
@@ -222,16 +222,16 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
 
           case 0 =>
             hdskCommandPosition += 1
-            current_disk = findUnitByNumber(data.intValue).asInstanceOf[Option[S100HDSKUnit]]
-            Utils.outlnd(this, s"SET DISK: ${data.intValue}")
+            current_disk = findUnitByNumber(data.intValue()).asInstanceOf[Option[S100HDSKUnit]]
+            Utils.outlnd(this, s"SET DISK: ${data.intValue()}")
 
           case 1 =>
-            current_disk.get.current_sector = data.intValue
+            current_disk.get.current_sector = data.intValue()
             hdskCommandPosition += 1
             Utils.outlnd(this, s"SET SECTOR: ${current_disk.get.current_sector}")
 
           case 2 =>
-            current_disk.get.current_track = data.intValue
+            current_disk.get.current_track = data.intValue()
             hdskCommandPosition += 1
             Utils.outlnd(this, s"SET TRACK LB: ${current_disk.get.current_track}")
 
@@ -241,7 +241,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
             Utils.outlnd(this, s"SET TRACK HB: ${current_disk.get.current_track}")
 
           case 4 =>
-            selectedDMA = data.intValue
+            selectedDMA = data.intValue()
             hdskCommandPosition += 1
             Utils.outlnd(this, s"Set DMA LB: $selectedDMA")
 
@@ -257,9 +257,9 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
         }
       case _ =>
         if ((HDSK_RESET <= data.intValue) && (data.intValue <= HDSK_PARAM))
-          hdskLastCommand = data.intValue
+          hdskLastCommand = data.intValue()
         else {
-          Utils.outln(s"$getName Illegal OUT command detected (port=$port, cmd=${data.intValue}).")
+          Utils.outln(s"$getName Illegal OUT command detected (port=$port, cmd=${data.intValue()}).")
           hdskLastCommand = HDSK_RESET
         }
         hdskCommandPosition = 0
@@ -271,7 +271,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
   /* pre-condition: hdsk_checkParameters has been executed to repair any faulty parameters */
   def hdsk_read(): UByte = {
     val unit = current_disk.get
-    if (unit.isIMD()) {
+    if (unit.isIMD) {
       val thisDisk: DiskInfo = unit.diskInfo
       hostSector = unit.HDSK_FORMAT_TYPE match {
         case None => unit.current_sector
@@ -318,7 +318,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
     Utils.outlnd(this, s"DMA XFER $selectedDMA Buf:${hdiskBuf.limit()}  Sector Size:${unit.HDSK_SECTOR_SIZE}")
     for (i <- 0 until unit.HDSK_SECTOR_SIZE) {
       val b = UByte(hdiskBuf.get(i))
-      Utils.outd(this, s"${b.intValue.toHexString} ")
+      Utils.outd(this, s"${b.intValue().toHexString} ")
       machine.cpu.MMU.put8(selectedDMA + i, b)
     }
     Utils.outd(this, "\n\r")
@@ -335,7 +335,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
       /* write enabled */
       hdiskBuf = ByteBuffer.allocate(unit.HDSK_SECTOR_SIZE)
       for (i <- 0 until unit.HDSK_SECTOR_SIZE) hdiskBuf.put(machine.cpu.MMU.get8(selectedDMA + i).byteValue)
-      if (unit.isIMD()) {
+      if (unit.isIMD) {
         val thisDisk: DiskInfo = unit.diskInfo
         hostSector = unit.HDSK_FORMAT_TYPE match {
           case None => unit.current_sector
@@ -421,7 +421,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
   )
 
 
-  override def boot(unitno: Int, sb: StringBuilder): Boolean  = {
+  override def boot(unitno: Int, sb: mutable.StringBuilder): Boolean  = {
     val unit = findUnitByNumber(unitno).asInstanceOf[Option[S100FD400Unit]]
     if (unit.isEmpty || !unit.get.isAvailable) {
       sb.append(s"$getName: Unit is not available.")
@@ -496,7 +496,7 @@ object S100HDSKDevice {
   val SPT26: Int = 26
   val SPT52: Int = 52
 
-  val DPB = List(new HDSK, new CPM68K, new EZ80FL, new P112, new SU720,
+  val DPB: List[S100HDiskParamsBase] = List(new HDSK, new CPM68K, new EZ80FL, new P112, new SU720,
     new OSB1, new OSB2, new NSSS1, new NSSS2, new NSDS2, new VGSS,
     new VGDS, new DISK1A, new SSSD8, new SSSD8S, new SSDD8,
     new SSDD8S, new DSDD8, new DSDD8S, new D512SSDD8, new D512DSDD8,

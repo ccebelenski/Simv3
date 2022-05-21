@@ -3,6 +3,7 @@ package com.sim
 import com.sim.machine.AbstractMachine
 import com.sim.unsigned.UInt
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -13,7 +14,7 @@ class GoCommand extends Command {
   commandHelpText = "GO <START>"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
 
     if (Console.cpuRunning) {
       sb.append("SIM: Invalid command while CPU is running")
@@ -69,7 +70,7 @@ class StepCommand extends Command {
   commandHelpText = "STEP - execute one instruction on the CPU"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (Console.cpuRunning) sb.append("SIM: Invalid command while CPU is running")
     else
       Console.simEnvironment.simMachine match {

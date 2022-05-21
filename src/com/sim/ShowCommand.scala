@@ -4,8 +4,9 @@ import java.lang.management.{ManagementFactory, MemoryType}
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
-
 import com.sim.machine.AbstractMachine
+
+import scala.collection.mutable
 
 //import scala.collection.JavaConverters._
 import scala.jdk.CollectionConverters._
@@ -63,12 +64,12 @@ class ShowDeviceCommand extends Command {
 
   override def process(tokenArray: Array[String]): Boolean = {
 
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length == 0) {
       sb.append(s"SIM: Please specify a device.")
     } else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
-      case Some(m: AbstractMachine) => {
+      case Some(m: AbstractMachine) =>
         val devname = tokenArray(0)
         m.findDevice(devname) match {
           case None =>
@@ -79,13 +80,10 @@ class ShowDeviceCommand extends Command {
             }
 
 
-          case Some(v) => {
+          case Some(v) =>
 
             v.showCommand(sb)
-
-          }
         }
-      }
     }
 
 
@@ -101,7 +99,7 @@ class ShowBreakpointsCommand extends Command {
   level = 1
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
 
     Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
@@ -120,7 +118,7 @@ class ShowMLogsCommand extends Command {
   level = 1
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
 
     Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
@@ -138,7 +136,7 @@ class ShowJVMCommand extends Command {
   commandHelpText = "Show some JVM related information for debugging and monitoring purposes."
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     val runtime = Runtime.getRuntime
     level = 1
 

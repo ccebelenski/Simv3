@@ -8,6 +8,7 @@ import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption.{CREATE, READ, SPARSE, WRITE}
 import java.nio.file.{Files, OpenOption, Path, Paths}
 import java.util
+import scala.collection.mutable
 
 class S100FD400Unit(device:S100FD400Device) extends BasicUnit(device) with  DiskUnit {
 
@@ -48,9 +49,9 @@ class S100FD400Unit(device:S100FD400Device) extends BasicUnit(device) with  Disk
 
   override def init(): Unit = {}
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
-  override def attach(fileSpec: String, sb: StringBuilder): Boolean = {
+  override def attach(fileSpec: String, sb: mutable.StringBuilder): Boolean = {
 
     if (isAvailable) {
       sb.append(s"$getName: Unit is still attached.   DETACH first.\n")

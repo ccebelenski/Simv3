@@ -3,6 +3,8 @@ package com.sim
 import com.sim.device.UnitAttachable
 import com.sim.machine.AbstractMachine
 
+import scala.collection.mutable
+
 class DetachCommand extends Command {
   commandToken = "DETACH"
   commandDescription = "Detaches an image from a unit."
@@ -28,7 +30,7 @@ class DetachCommand extends Command {
                 Utils.outln(s"${m.getName} Unit is not attachable.")
                 return true
               }
-              val sb = new StringBuilder
+              val sb = new mutable.StringBuilder
               unit.asInstanceOf[UnitAttachable].detach(sb)
               Utils.outln(sb.toString())
           }

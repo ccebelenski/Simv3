@@ -2,10 +2,11 @@ package com.sim
 
 import java.io.File
 import java.nio.file.Paths
-
 import javax.swing.JFileChooser
 import com.sim.device.UnitAttachable
 import com.sim.machine.AbstractMachine
+
+import scala.collection.mutable
 
 class AttachCommand extends Command {
   commandToken = "ATTACH"
@@ -31,7 +32,7 @@ class AttachCommand extends Command {
         jfc.showOpenDialog(Console.term) match {
           case JFileChooser.APPROVE_OPTION =>
             fileName = jfc.getSelectedFile.getCanonicalPath
-            Utils.outln(s"SIM: File ${fileName}")
+            Utils.outln(s"SIM: File $fileName")
           case _ =>
         }
 
@@ -55,7 +56,7 @@ class AttachCommand extends Command {
               Utils.outln(s"${m.getName} Unit is not attachable.")
               return true
             }
-            val sb = new StringBuilder
+            val sb = new mutable.StringBuilder
             unit.asInstanceOf[UnitAttachable].attach(fileName, sb)
             Utils.outln(sb.toString())
         }

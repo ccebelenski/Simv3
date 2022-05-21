@@ -15,7 +15,7 @@ abstract class AbstractMachine extends Named {
 
   val description:String = "None"
 
-  var devices: ListBuffer[BasicDevice] = new ListBuffer[BasicDevice]
+  val devices: ListBuffer[BasicDevice] = new ListBuffer[BasicDevice]
 
   // Create a new system event queue
   val eventQueue : EventQueue = new EventQueue
@@ -42,8 +42,8 @@ abstract class AbstractMachine extends Named {
    */
   def showMachine() : Unit = {
 
-    val sb = new StringBuilder
-    sb.append(s"SIM: Simulated Machine: ${getName} : $description\n\r")
+    val sb = new mutable.StringBuilder
+    sb.append(s"SIM: Simulated Machine: $getName : $description\n\r")
     sb.append(s"SIM: Available devices:\n\r")
     if(devices.isEmpty) sb.append(s"SIM: \t No devices.\n\r")
     devices.foreach(d => sb.append(s"SIM: \t ${d.getName}\tEna: ${d.isEnabled}\n\r"))
@@ -60,7 +60,7 @@ abstract class AbstractMachine extends Named {
     var result: Option[BasicUnit] = None
     devices.foreach( d=> {
       d.getUnits.find( u => u.getName.equalsIgnoreCase(deviceName)) match {
-        case None => {}
+        case None =>
         case Some(x:BasicUnit) => result = Some(x)
         case null => throw new Exception("System check: Unknown findUnitDevice")
       }
@@ -130,7 +130,7 @@ abstract class AbstractMachine extends Named {
     breakpoints(address)
   }
 
-  def showBreaks(sb:StringBuilder):Unit = {
+  def showBreaks(sb:mutable.StringBuilder):Unit = {
     breakpoints.foreach(b => {
       sb.append(f"${b.intValue}%08X\n\r")
     })
@@ -151,7 +151,7 @@ abstract class AbstractMachine extends Named {
   def checkMemLog(address:UInt) : Boolean = {
     memlogs(address)
   }
-  def showMemLogs(sb:StringBuilder):Unit = {
+  def showMemLogs(sb:mutable.StringBuilder):Unit = {
     memlogs.foreach(b => {
       sb.append(f"${b.intValue}%08X\n\r")
     })

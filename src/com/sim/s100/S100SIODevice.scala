@@ -5,6 +5,8 @@ import com.sim.cpu.Z80MMU
 import com.sim.device.{BinaryUnitOption, PortMappedDevice, SerialDevice, ValueUnitOption}
 import com.sim.unsigned.{UByte, UInt}
 
+import scala.collection.mutable
+
 /**
   * A simulated MITS 2SIO interface card.
   *
@@ -60,13 +62,13 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
 
   }
 
-  override def showCommand(sb: StringBuilder): Unit = {
+  override def showCommand(sb: mutable.StringBuilder): Unit = {
     super.showCommand(sb)
 
   }
 
   override def createUnitOptions(): Unit = {
-    createSerialUnitOptions
+    createSerialUnitOptions()
 
     unitOptions.append(BinaryUnitOption("INTERRUPT", "Status port 0 creates an interrupt when a character becomes available", value = false))
     unitOptions.append(ValueUnitOption("IOPORT", "Set I/O port to IOPORT", value = 0))
@@ -93,7 +95,7 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
     //machine.eventQueue.cancel(SIOUnit)
   }
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   override def action(action: UInt, value: UByte, isWrite: Boolean): UByte = {
     //    val ch = value.toChar
@@ -117,6 +119,11 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
     } else if (action == 0x11) {
 
       if (isWrite) {
+        if(value.intValue() < 10 || value.intValue() > 125)
+          {
+            Utils.outln(s"Char = ${value.intValue()} : ${value.byteValue.toChar} SP: ${this.machine.getCPU.SP.get16.intValue().toHexString}")
+            Utils.outln(s"PC: ${machine.getCPU.PC.toHexString} CF: ${this.mmu.get16(machine.getCPU.SP.get16).toHexString}")
+          }
         //Utils.outln(s"${this.machine.getCPU.PC.get16.intValue().toHexString} - SP:${this.machine.getCPU.SP.get16.intValue().toHexString}")
         SIOUnit.getTerminal.print(s"${value.byteValue.toChar}")
         UByte(0)
@@ -136,7 +143,7 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
       if (isWrite) UByte(0) // ignore
       else CAN_WRITE
     } else {
-      Utils.outln(s"$getName: Misconfigured, write to port ${action.toHexString()} value ${value.toHexString()}")
+      Utils.outln(s"$getName: Misconfiguration, write to port ${action.toHexString} value ${value.toHexString}")
       UByte(0)
     }
   }

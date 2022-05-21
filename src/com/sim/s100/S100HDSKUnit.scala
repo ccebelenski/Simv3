@@ -8,6 +8,7 @@ import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption.{CREATE, READ, SPARSE, WRITE}
 import java.nio.file.{OpenOption, Path, Paths}
 import java.util
+import scala.collection.mutable
 
 class S100HDSKUnit(device:S100HDSKDevice) extends BasicUnit(device) with  DiskUnit with ImageDisk {
 
@@ -31,10 +32,10 @@ class S100HDSKUnit(device:S100HDSKDevice) extends BasicUnit(device) with  DiskUn
     // TODO
   }
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
 
-  override def attach(fileSpec: String, sb: StringBuilder): Boolean = {
+  override def attach(fileSpec: String, sb: mutable.StringBuilder): Boolean = {
 
     if (isAvailable) {
       sb.append(s"$getName: Unit is still attached.   DETACH first.\n")
@@ -56,7 +57,7 @@ class S100HDSKUnit(device:S100HDSKDevice) extends BasicUnit(device) with  DiskUn
     capacity = fileChannel.size()
     if(capacity == 0) capacity = HDSK_CAPACITY
 
-    if(isIMD()) {
+    if(isIMD) {
       if(capacity == 0) {
         Utils.outln(s"$getName: No image specified.")
         return false
@@ -113,7 +114,7 @@ class S100HDSKUnit(device:S100HDSKDevice) extends BasicUnit(device) with  DiskUn
   }
 
 
-  override def detach(sb: StringBuilder): Boolean = {
+  override def detach(sb: mutable.StringBuilder): Boolean = {
     val ret = super.detach(sb)
     HDSK_FORMAT_TYPE = None
 

@@ -7,38 +7,38 @@ package com.sim.unsigned
 case class ULong(override val longValue: Long) extends AnyVal with Unsigned[ULong, ULong, Long] {
   private[unsigned] def rep = longValue
 
-  def toUByte(): UByte = UByte((rep & 0xffffffffL).toByte)
+  def toUByte: UByte = UByte((rep & 0xffffffffL).toByte)
 
-  def toUShort(): UShort = UShort((rep & 0xffffffffL).toShort)
+  def toUShort: UShort = UShort((rep & 0xffffffffL).toShort)
 
-  def toUInt(): UInt = UInt((rep & 0xffffffffL).toInt)
+  def toUInt: UInt = UInt((rep & 0xffffffffL).toInt)
 
-  def toULong(): ULong = this
+  def toULong: ULong = this
 
-  override def toByte(): Byte = (rep & 0x7fffffffffffffffL).toByte
+  override def toByte: Byte = (rep & 0x7fffffffffffffffL).toByte
 
-  override def toChar(): Char = (rep & 0x7fffffffffffffffL).toChar
+  override def toChar: Char = (rep & 0x7fffffffffffffffL).toChar
 
-  override def toShort(): Short = (rep & 0x7fffffffffffffffL).toShort
+  override def toShort: Short = (rep & 0x7fffffffffffffffL).toShort
 
-  override def toInt(): Int = (rep & 0x7fffffffffffffffL).toInt
+  override def toInt: Int = (rep & 0x7fffffffffffffffL).toInt
 
-  override def toLong(): Long = rep
+  override def toLong: Long = rep
 
-  override def toFloat(): Float = (rep & 0x7fffffffffffffffL).toFloat
+  override def toFloat: Float = (rep & 0x7fffffffffffffffL).toFloat
 
-  override def toDouble(): Double = (rep >>> 1).toDouble * 2.+(rep & 1L)
+  override def toDouble: Double = (rep >>> 1).toDouble * 2.+(rep & 1L)
 
   // override def intValue = rep
-  override def byteValue(): Byte = toByte()
+  override def byteValue(): Byte = toByte
 
-  override def shortValue(): Short = toShort()
+  override def shortValue(): Short = toShort
 
-  override def intValue: Int = toInt()
+  override def intValue(): Int = toInt
 
-  override def floatValue(): Float = toFloat()
+  override def floatValue(): Float = toFloat
 
-  override def doubleValue(): Double = toDouble()
+  override def doubleValue(): Double = toDouble
 
   def +(x: Int)(implicit d: DummyImplicit): Long = this.toLong + x
 
@@ -72,77 +72,77 @@ case class ULong(override val longValue: Long) extends AnyVal with Unsigned[ULon
 
   def |(x: Long)(implicit d: DummyImplicit): Long = this.toLong | x
 
-  def +(x: UByte): ULong = this + x.toULong()
+  def +(x: UByte): ULong = this + x.toULong
 
-  def -(x: UByte): ULong = this - x.toULong()
+  def -(x: UByte): ULong = this - x.toULong
 
-  def *(x: UByte): ULong = this * x.toULong()
+  def *(x: UByte): ULong = this * x.toULong
 
-  def /(x: UByte): ULong = this / x.toULong()
+  def /(x: UByte): ULong = this / x.toULong
 
-  def %(x: UByte): ULong = this % x.toULong()
+  def %(x: UByte): ULong = this % x.toULong
 
-  def &(x: UByte): ULong = this & x.toULong()
+  def &(x: UByte): ULong = this & x.toULong
 
-  def ^(x: UByte): ULong = this ^ x.toULong()
+  def ^(x: UByte): ULong = this ^ x.toULong
 
-  def |(x: UByte): ULong = this | x.toULong()
+  def |(x: UByte): ULong = this | x.toULong
 
-  def <(x: UByte): Boolean = this < x.toULong()
+  def <(x: UByte): Boolean = this < x.toULong
 
-  def >(x: UByte): Boolean = this > x.toULong()
+  def >(x: UByte): Boolean = this > x.toULong
 
-  def <=(x: UByte): Boolean = this <= x.toULong()
+  def <=(x: UByte): Boolean = this <= x.toULong
 
-  def >=(x: UByte): Boolean = this >= x.toULong()
+  def >=(x: UByte): Boolean = this >= x.toULong
 
-  def +(x: UShort): ULong = this + x.toULong()
+  def +(x: UShort): ULong = this + x.toULong
 
-  def -(x: UShort): ULong = this - x.toULong()
+  def -(x: UShort): ULong = this - x.toULong
 
-  def *(x: UShort): ULong = this * x.toULong()
+  def *(x: UShort): ULong = this * x.toULong
 
-  def /(x: UShort): ULong = this / x.toULong()
+  def /(x: UShort): ULong = this / x.toULong
 
-  def %(x: UShort): ULong = this % x.toULong()
+  def %(x: UShort): ULong = this % x.toULong
 
-  def &(x: UShort): ULong = this & x.toULong()
+  def &(x: UShort): ULong = this & x.toULong
 
-  def ^(x: UShort): ULong = this ^ x.toULong()
+  def ^(x: UShort): ULong = this ^ x.toULong
 
-  def |(x: UShort): ULong = this | x.toULong()
+  def |(x: UShort): ULong = this | x.toULong
 
-  def <(x: UShort): Boolean = this < x.toULong()
+  def <(x: UShort): Boolean = this < x.toULong
 
-  def >(x: UShort): Boolean = this > x.toULong()
+  def >(x: UShort): Boolean = this > x.toULong
 
-  def <=(x: UShort): Boolean = this <= x.toULong()
+  def <=(x: UShort): Boolean = this <= x.toULong
 
-  def >=(x: UShort): Boolean = this >= x.toULong()
+  def >=(x: UShort): Boolean = this >= x.toULong
 
-  def +(x: UInt): ULong = this + x.toULong()
+  def +(x: UInt): ULong = this + x.toULong
 
-  def -(x: UInt): ULong = this - x.toULong()
+  def -(x: UInt): ULong = this - x.toULong
 
-  def *(x: UInt): ULong = this * x.toULong()
+  def *(x: UInt): ULong = this * x.toULong
 
-  def /(x: UInt): ULong = this / x.toULong()
+  def /(x: UInt): ULong = this / x.toULong
 
-  def %(x: UInt): ULong = this % x.toULong()
+  def %(x: UInt): ULong = this % x.toULong
 
-  def &(x: UInt): ULong = this & x.toULong()
+  def &(x: UInt): ULong = this & x.toULong
 
-  def ^(x: UInt): ULong = this ^ x.toULong()
+  def ^(x: UInt): ULong = this ^ x.toULong
 
-  def |(x: UInt): ULong = this | x.toULong()
+  def |(x: UInt): ULong = this | x.toULong
 
-  def <(x: UInt): Boolean = this < x.toULong()
+  def <(x: UInt): Boolean = this < x.toULong
 
-  def >(x: UInt): Boolean = this > x.toULong()
+  def >(x: UInt): Boolean = this > x.toULong
 
-  def <=(x: UInt): Boolean = this <= x.toULong()
+  def <=(x: UInt): Boolean = this <= x.toULong
 
-  def >=(x: UInt): Boolean = this >= x.toULong()
+  def >=(x: UInt): Boolean = this >= x.toULong
 
   def +(x: ULong): ULong = ULong(rep + x.rep)
 
@@ -197,7 +197,7 @@ case class ULong(override val longValue: Long) extends AnyVal with Unsigned[ULon
     ULong(r)
   }
 
-  override def toString(): String =
+  override def toString: String =
     if (rep >= 0L)
       rep.toString
     else if (rep == (1 << 63))
@@ -205,11 +205,11 @@ case class ULong(override val longValue: Long) extends AnyVal with Unsigned[ULon
     else
       (~(rep - 1)).toString
 
-  def toHexString(): String = rep.toHexString
+  def toHexString: String = rep.toHexString
 
-  def toOctalString(): String = rep.toOctalString
+  def toOctalString: String = rep.toOctalString
 
-  def toBinaryString(): String = rep.toBinaryString
+  def toBinaryString: String = rep.toBinaryString
 
   // Equality comparison to ULong is baked in
 

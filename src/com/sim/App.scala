@@ -15,7 +15,7 @@ object App {
 
     //val prop = new Properties()
     //prop.load(classOf[App].getClassLoader.getResourceAsStream("sim.properties"))
-    var con: Console = new Console()
+    val con: Console = new Console()
 
 
     con.initUI()

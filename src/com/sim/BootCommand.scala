@@ -3,6 +3,7 @@ package com.sim
 import com.sim.device.{BasicDevice, BasicUnit, Bootable}
 import com.sim.machine.AbstractMachine
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -14,14 +15,14 @@ class BootCommand extends Command {
 
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length == 0) {
       sb.append(s"SIM: Please specify a unit.")
     } else if(Console.cpuRunning) {
       sb.append("SIM: CPU is running already.")
     } else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
-      case Some(m: AbstractMachine) => {
+      case Some(m: AbstractMachine) =>
         val devname = tokenArray(0)
         m.findUnitDevice(devname) match {
           case None =>
@@ -48,7 +49,6 @@ class BootCommand extends Command {
             }
 
         }
-      }
     }
 
     Utils.outln(sb.toString())

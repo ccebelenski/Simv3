@@ -1,10 +1,10 @@
 package com.sim
 
 import java.util.regex.Pattern
-
 import com.sim.device.SupportsOptions
 import com.sim.machine.AbstractMachine
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 class SetCommand extends Command {
@@ -38,7 +38,8 @@ class SetMachineCommand extends Command {
 
   override def process(tokenArray: Array[String]): Boolean = {
 
-    if (tokenArray.size != 1) Utils.outln(s"SIM: Please specify a machine.")
+    //noinspection SizeToLength
+    if (tokenArray.length != 1) Utils.outln(s"SIM: Please specify a machine.")
     else {
       val mn = tokenArray(0)
       AbstractMachine.services.find(am => am.getName == mn) match {
@@ -66,12 +67,12 @@ class SetDeviceCommand extends Command {
   level = 1
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length == 0) {
       sb.append(s"SIM: Please specify a device.")
     } else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
-      case Some(m: AbstractMachine) => {
+      case Some(m: AbstractMachine) =>
         val devname = tokenArray(0)
 
 
@@ -87,14 +88,11 @@ class SetDeviceCommand extends Command {
             }
 
 
-          case Some(v) => {
+          case Some(v) =>
             val options = tokenArray.slice(1, tokenArray.length)
             val opts = parseOpts(options)
             setOptions(v, opts, sb)
-
-          }
         }
-      }
     }
 
 
@@ -102,7 +100,7 @@ class SetDeviceCommand extends Command {
     false
   }
 
-  private def setOptions(x: SupportsOptions, o: List[(String, String)], sb: StringBuilder): Unit = {
+  private def setOptions(x: SupportsOptions, o: List[(String, String)], sb: mutable.StringBuilder): Unit = {
     var optionsChanged = false
     o.foreach(z => {
       if(x.setOption(z._1, z._2, sb)) optionsChanged = true

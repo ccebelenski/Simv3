@@ -2,6 +2,8 @@ package com.sim
 
 import com.sim.machine.AbstractMachine
 
+import scala.collection.mutable
+
 class DisassembleCommand extends Command {
 
   commandToken = "DISASSEMBLE"
@@ -9,7 +11,7 @@ class DisassembleCommand extends Command {
   commandHelpText = "DIS<ASSEMBLE> [START] <END>"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length < 1 || tokenArray.length > 2) sb.append("SIM: Requires a start address, optional end address.\n\r")
 
     else Console.simEnvironment.simMachine match {

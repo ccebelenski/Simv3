@@ -2,6 +2,8 @@ package com.sim
 
 import com.sim.machine.AbstractMachine
 
+import scala.collection.mutable
+
 class ListCommand extends Command {
 
   commandToken = "LIST"
@@ -30,7 +32,7 @@ class ListMachinesCommand extends Command {
 
   override def process(tokenArray: Array[String]): Boolean = {
 
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
 
     AbstractMachine.services.foreach(am => {
       sb.append(am.getName)

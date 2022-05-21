@@ -56,7 +56,7 @@ object SimCLI {
     x.setPrompt("sim> ")
     while(result != "exit") {
       result = x.getline
-      System.out.println(s"\nResult> ${result}")
+      System.out.println(s"\nResult> $result")
       System.out.println(s"Length: ${result.length}")
     }
   }

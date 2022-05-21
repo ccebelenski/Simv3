@@ -2,6 +2,8 @@ package com.sim
 
 import com.sim.device.BasicUnit
 
+import scala.collection.mutable
+
 class SimTimerUnit(override val device: SimTimer, val isCalibrated: Boolean = false) extends BasicUnit(device) {
 
 
@@ -76,7 +78,7 @@ class SimTimerUnit(override val device: SimTimer, val isCalibrated: Boolean = fa
   var sim_idle_cyc_ms = 0L
   /* Cycles per millisecond while not idling */
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   override def init(): Unit = {
     val time: Long = if (rtc_currd == 0) 1L else rtc_currd
@@ -324,7 +326,7 @@ class SimTimerUnit(override val device: SimTimer, val isCalibrated: Boolean = fa
     device.machine.eventQueue.activateAfter(this, 1000000 / SimTimer.sim_internal_clock_tps)
   }
 
-  override def showCommand(sb:StringBuilder): Unit = {
+  override def showCommand(sb:mutable.StringBuilder): Unit = {
     super.showCommand(sb)
     sb.append(s"  Clock device is $getName ${if (this == SimTimer.internal_timer) "Internal Calibrated Timer"}\n")
     sb.append(s"${if (SimTimer.sim_asynch_timer) "Asynchronus" else if (rtc_hz != 0) "Calibrated" else "Uncalibrated"} Timer:\n")

@@ -11,8 +11,11 @@ import com.sim.unsigned.ubyte2Int
 import com.sim.unsigned.ushort2uint
 import com.sim.unsigned.ubyte2uint
 import com.sim.unsigned.uint2int
+
+import scala.collection.mutable
 import scala.language.implicitConversions
 
+//noinspection ScalaUnusedSymbol
 class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends BasicCPU(isBanked, machine) {
   override val name = "Z80"
   override val MMU: Z80MMU = new Z80MMU(this)
@@ -20,7 +23,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   override def init(): Unit = {} // TODO
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   override def handles(value: UInt): Boolean = ???
 
@@ -66,7 +69,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   }
 
-  override def showCommand(stringBuilder: StringBuilder): Unit = {
+  override def showCommand(stringBuilder: mutable.StringBuilder): Unit = {
     super.showCommand(stringBuilder)
   }
 
@@ -146,7 +149,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     val bit5 = if ((AF & 32) != 0) true else false
     val z = if ((AF & FLAG_Z) != 0) true else false
     val s = if ((AF & FLAG_S) != 0) true else false
-    val str = f"${F.toBinaryString()}%8s".replaceAll(" ", "0")
+    val str = f"${F.toBinaryString}%8s".replaceAll(" ", "0")
     s"\n\rF=$str  :  S=$s  Z=$z  H=$h  P/V=$pv  N=$addsub  C=$carry"
 
   }
@@ -327,8 +330,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // DJNZ dd
   private final def fn0x10(x: Int): Unit = {
     B.decrement()
-    //BC(BC.get16 - 0x100)
-    if (B.get8() == 0) {
+    if (B.get8() != 0) {
       // Jump
       addTStates(13)
       PC(PC.get16 + MMU.get8(PC) + 1)
@@ -437,7 +439,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   // JR NZ,dd
   private final def fn0x20(x: Int): Unit = {
-    if ((F & FLAG_Z) != 0) { // Z flag
+
+    if (testFlag(F, FLAG_Z)) { // Z flag set?
       addTStates(7)
       PC.increment()
     } else {
@@ -1888,7 +1891,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     PC(0x28)
   }
 
-  // RET P
+  // RET P - sign is not set
   private final def fn0xf0(x: Int): Unit = {
     if (testFlag(F, FLAG_S)) {
       addTStates(5)
@@ -2031,9 +2034,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
         // If we are single stepping, the only do this one instruction.
         if (singleStep) execute = false
 
-        if (machine.checkBreak(PC.toUInt()) && lastBreak != PC.toUInt() && !singleStep) {
+        if (machine.checkBreak(PC.toUInt) && lastBreak != PC.toUInt && !singleStep) {
           execute = false
-          lastBreak = PC.toUInt()
+          lastBreak = PC.toUInt
           Utils.outln(f"\n\rZ80: Break at: ${PC.intValue()}%05X")
 
         } else {
@@ -2124,7 +2127,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       Utils.outln(showFlags())
     } else {
       // Single stepped or break
-      val sb = new StringBuilder
+      val sb = new mutable.StringBuilder
       sb.append(f"${PC.intValue()}%05X : ")
       DAsm(PC.intValue(), sb)
       Utils.outln(sb.toString())
@@ -2385,8 +2388,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   @inline
   private final def JPC(cond: => Boolean): Unit = {
     addTStates(10)
-    val result: Boolean = cond
-    if (result) {
+    if (cond) {
       PC(MMU.get16(PC))
     } else PC(PC + 2)
   }
@@ -2453,13 +2455,13 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def ADC(r1: Register16, r2: Register16): Unit = {
-    val sum: UInt = r1.get16.toUInt() + r2.get16.toUInt() + {
+    val sum: UInt = r1.get16.toUInt + r2.get16.toUInt + {
       if (testFlag(F, FLAG_C)) UInt(1) else UInt(0)
     }
     if (r1.nmenomic != r2.nmenomic)
       AF((AF & ~0xff) | ((sum >> 8) & 0xa8) | ({
         if ((sum & 0xffff) == 0) UInt(1) else UInt(0)
-      } << 6) | cbitsZ80Table(((r1.get16.toUInt() ^ r2.get16.toUInt() ^ sum) >> 8) & 0x1ff))
+      } << 6) | cbitsZ80Table(((r1.get16.toUInt ^ r2.get16.toUInt ^ sum) >> 8) & 0x1ff))
     else
       AF((AF & ~0xff) | ({
         if ((sum & 0xffff) == 0) 1 else 0
@@ -2517,12 +2519,12 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def SBC(r1: Register16, r2: Register16): Unit = {
-    val sum: UInt = r1.get16.toUInt() - r2.get16.toUInt() - (if (testFlag(F, FLAG_C)) UInt(1) else UInt(0))
+    val sum: UInt = r1.get16.toUInt - r2.get16.toUInt - (if (testFlag(F, FLAG_C)) UInt(1) else UInt(0))
     if (r1.nmenomic != r2.nmenomic) // Check for HL,HL
       AF((AF & ~0xff) | ((sum >> 8) & 0xa8) | ({
         if ((sum & 0xffff) == 0) UInt(1) else UInt(0)
       } << 6) |
-        cbits2Z80Table(((r1.get16.toUInt() ^ r2.get16.toUInt() ^ sum) >> 8) & 0x1ff))
+        cbits2Z80Table(((r1.get16.toUInt ^ r2.get16.toUInt ^ sum) >> 8) & 0x1ff))
 
     else
       AF((AF & ~0xff) | ({
@@ -2586,7 +2588,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     val adr: Int = r1.get16.intValue + MMU.get8(PC)
     PC.increment()
     CHECK_LOG_BYTE(adr)
-    val temp: UByte = UByte((MMU.get8(adr) + UByte(1)).toByte())
+    val temp: UByte = UByte((MMU.get8(adr) + UByte(1)).toByte)
     MMU.put8(adr, temp)
     AF((AF & ~0xfe) | incZ80Table(temp))
   }
@@ -2596,7 +2598,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     val adr: Int = r1.get16.intValue + MMU.get8(PC)
     PC.increment()
     CHECK_LOG_BYTE(adr)
-    val temp: UByte = UByte((MMU.get8(adr) - UByte(1)).toByte())
+    val temp: UByte = UByte((MMU.get8(adr) - UByte(1)).toByte)
     MMU.put8(adr, temp)
     AF((AF & ~0xfe) | decZ80Table(temp & 0xff))
   }
@@ -2712,7 +2714,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   }
 
 
-  override def DAsm(addr: Int, sb: StringBuilder): Int = {
+  override def DAsm(addr: Int, sb: mutable.StringBuilder): Int = {
     var pc = addr
     var T: String = null
     var J = false

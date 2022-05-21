@@ -8,6 +8,7 @@ import com.sim.unsigned.UInt
 import java.awt.event.{KeyEvent, KeyListener}
 import java.net.{ServerSocket, Socket, SocketTimeoutException}
 import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
+import scala.collection.mutable
 
 /**
   * Psuedo device - System MUX - multiterminal telnet server.  Units are created dynamically as connections are made.
@@ -85,7 +86,7 @@ class MuxDevice(machine: AbstractMachine) extends BasicDevice(machine: AbstractM
     true
   }
 
-  override def showCommand(sb: StringBuilder): Unit = {
+  override def showCommand(sb: mutable.StringBuilder): Unit = {
     super.showCommand(sb)
     sb.append(s"$getName: Registered device: ")
     if (registeredDevice.isDefined) sb.append(s"${registeredDevice.get.asInstanceOf[BasicDevice].getName}")
@@ -101,7 +102,7 @@ class MuxDevice(machine: AbstractMachine) extends BasicDevice(machine: AbstractM
 
   }
 
-  override def optionChanged(sb: StringBuilder): Unit = {
+  override def optionChanged(sb: mutable.StringBuilder): Unit = {
     sb.append(s"\n$getName: Options have changed, device will reload.")
 
     listenThread.interrupt()
@@ -147,14 +148,12 @@ class MUXListener(val port: Int, val maxClients: Int, val device: MuxDevice) ext
             s.close()
           }
         } catch {
-          case st: SocketTimeoutException => {}
+          case st: SocketTimeoutException =>
         }
       }
     } catch {
-      case i: InterruptedException => {
-
-      }
-      case t: Throwable => {}
+      case i: InterruptedException =>
+      case t: Throwable =>
     } finally {
       //      Utils.outln(s"\n\n${device.getName}: Shutting down MUX server... ")
       device.socket.close()
@@ -164,9 +163,8 @@ class MUXListener(val port: Int, val maxClients: Int, val device: MuxDevice) ext
           device.executor.shutdownNow()
         }
       } catch {
-        case x: InterruptedException => {
+        case x: InterruptedException =>
           device.executor.shutdownNow()
-        }
       }
     }
   }

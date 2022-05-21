@@ -7,7 +7,7 @@ import scala.annotation.switch
  */
 class UInt(val intValue: Int) extends AnyVal with SmallUInt[UInt] {
   @inline
-  override def toUInt(): UInt = this
+  override def toUInt: UInt = this
 
   @inline
   override def intRep: Int = intValue

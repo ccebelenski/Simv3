@@ -3,6 +3,8 @@ package com.sim
 import com.sim.device.{BasicDevice, BasicUnit, DiskUnit, ImageDisk}
 import org.junit.{Before, Test}
 
+import scala.collection.mutable
+
 class IMDTests {
 
   var diskUnit : IMDUnit = _
@@ -29,9 +31,9 @@ class IMDTests {
 
     override def init(): Unit = ???
 
-    override def optionChanged(sb: StringBuilder): Unit = ???
+    override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
-    override def attach(filespec: String, sb: StringBuilder): Boolean = ???
+    override def attach(filespec: String, sb: mutable.StringBuilder): Boolean = ???
   }
 
 }

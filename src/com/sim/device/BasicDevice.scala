@@ -4,6 +4,7 @@ import com.sim.machine.AbstractMachine
 import com.sim.unsigned.UInt
 import com.sim.{Named, Utils}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -37,7 +38,7 @@ abstract class BasicDevice(val machine:AbstractMachine) extends Named with Suppo
   }
 
   def removeUnit(unit:BasicUnit) : Unit = synchronized {
-    var unitsCopy = new ArrayBuffer[BasicUnit]
+    val unitsCopy = new ArrayBuffer[BasicUnit]
     unitsCopy.appendAll(units)
     units.clear()
     unitsCopy.foreach(u => {
@@ -85,7 +86,7 @@ abstract class BasicDevice(val machine:AbstractMachine) extends Named with Suppo
   def isEnabled: Boolean = enabled
 
 
-  def showCommand(sb:StringBuilder): Unit = {
+  def showCommand(sb:mutable.StringBuilder): Unit = {
     val dn = s"$getName: "
     sb.append(s"$dn$description\n\r")
     sb.append(s"${dn}Enabled: $isEnabled Units:${units.length}\n\r")

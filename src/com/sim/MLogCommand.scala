@@ -3,6 +3,8 @@ package com.sim
 import com.sim.machine.AbstractMachine
 import com.sim.unsigned.UInt
 
+import scala.collection.mutable
+
 class MLogCommand extends Command {
 
   commandToken = "MLOG"
@@ -10,7 +12,7 @@ class MLogCommand extends Command {
   commandHelpText = "ML<OG> [ADDR]"
 
   override def process(tokenArray: Array[String]): Boolean = {
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length != 1) sb.append("SIM: Requires a log address.")
     else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
@@ -34,7 +36,7 @@ class UnMLogCommand extends Command {
 
   override def process(tokenArray: Array[String]): Boolean = {
 
-    val sb: StringBuilder = new StringBuilder
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
     if (tokenArray.length != 1) sb.append("SIM: Requires a log address, or ALL.")
     else Console.simEnvironment.simMachine match {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")

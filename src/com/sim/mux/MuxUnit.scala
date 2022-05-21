@@ -4,6 +4,7 @@ import com.sim.Utils
 import com.sim.device.{BasicDevice, BasicUnit, MuxAware}
 
 import java.net.{Socket, SocketAddress}
+import scala.collection.mutable
 
 class MuxUnit(device: MuxDevice, var socket: Socket) extends BasicUnit(device: BasicDevice) with Runnable {
 
@@ -46,14 +47,14 @@ class MuxUnit(device: MuxDevice, var socket: Socket) extends BasicUnit(device: B
 
   // Called when options changed - this is only really going to be useful on init, since
   // most options can't be changed after the socket is open.
-  override def optionChanged(sb:StringBuilder) : Unit = {
+  override def optionChanged(sb:mutable.StringBuilder) : Unit = {
 
     // PORT isn't a unit option
     // MAXCLIENTS isn't a unit option
     // Timeout can change, but not for the unit in progress.
   }
 
-  override def showCommand(sb: StringBuilder): Unit = {
+  override def showCommand(sb: mutable.StringBuilder): Unit = {
     super.showCommand(sb)
 
     sb.append(s"Connected to: $socketAddress\n")
@@ -94,7 +95,7 @@ class MuxUnit(device: MuxDevice, var socket: Socket) extends BasicUnit(device: B
           socket.close()
           Utils.out(s"\n\r\n\r$getName: Telnet session terminated.\n\r\n\r")
           device.removeUnit(this)
-          device.asInstanceOf[MuxDevice].clientCount-=1
+          device.clientCount-=1
           // Perform our callback, if we need to.
           unregisterCallbackDevice()
           return

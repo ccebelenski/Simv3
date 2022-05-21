@@ -18,9 +18,9 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   // Some constants - allow for overrides later
 
   val MAXBANKSIZE: UInt = UInt(65536) // Max memory size, power of 2
-  val MAXBANKSIZELOG2: UInt = UInt((Math.log(MAXBANKSIZE.toInt()) / Math.log(2)).intValue()) // log2 of MAXBANKSIZE
+  val MAXBANKSIZELOG2: UInt = UInt(Math.log(MAXBANKSIZE.toInt / Math.log(2)).intValue()) // log2 of MAXBANKSIZE
   val MAXBANKS: UInt = UInt(16) // Max number of memory banks, a power of 2
-  val MAXBANKSLOG2: UInt = UInt((Math.log(MAXBANKS.toInt()) / Math.log(2)).intValue()) // log2 of MAXBANKS
+  val MAXBANKSLOG2: UInt = UInt(Math.log(MAXBANKS.toInt / Math.log(2)).intValue()) // log2 of MAXBANKS
   val MAXMEMORY: UInt = MAXBANKS * MAXBANKSIZE // Maximum total memory size
   val ADDRMASK: UInt = MAXMEMORY - UInt(1) // Address mask
   val ADDRMASKEXTENDED: UInt = MAXMEMORY - UInt(1)
@@ -31,7 +31,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   val COMMON = 0xc000 // Addreses greater than common are in the same memory.
 
-  val mtab: Array[Option[MMU_ENTRY]] = new Array[Option[MMU_ENTRY]](1 + (MAXMEMORY >> LOG2PAGESIZE).toInt)
+  val mtab: Array[Option[MMU_ENTRY]] = new Array[Option[MMU_ENTRY]](1 + (MAXMEMORY >> LOG2PAGESIZE))
   for (x <- mtab.indices) mtab(x) = None
 
   // 256 Ports
@@ -43,7 +43,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   def mapRAM(baseAddress: UInt, size: UInt): Unit = {
 
-    for (i <- 0 to (size >> LOG2PAGESIZE).toInt) {
+    for (i <- 0 to (size >> LOG2PAGESIZE)) {
       val addr = (baseAddress & 0xfff00) + (i << LOG2PAGESIZE.toInt)
       val pageaddr = if (cpu.isBanked && addr < COMMON) addr | (bankSelect << MAXBANKSIZELOG2.toInt) else addr
       val page = pageaddr >> LOG2PAGESIZE.toInt
@@ -65,7 +65,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   }
 
   def mapAS(baseAddress: UInt, size: UInt, image: Array[Int], asROM: Boolean): Unit = {
-    for (i <- 0 to (size >> LOG2PAGESIZE).toInt) {
+    for (i <- 0 to (size >> LOG2PAGESIZE)) {
       val addr = (baseAddress & 0xfff00) + (i << LOG2PAGESIZE.toInt)
       val pageaddr = if (cpu.isBanked && addr < COMMON) addr | (bankSelect << MAXBANKSIZELOG2.toInt) else addr
       val page = pageaddr >> LOG2PAGESIZE.toInt
@@ -75,7 +75,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
       }
       val imgIdx = i << LOG2PAGESIZE.toInt
       val imgSize = PAGESIZE - UInt(1)
-      for (x <- imgIdx to imgSize.toInt) as.load8(UInt(addr + x), UByte(image(x).byteValue()))
+      for (x <- imgIdx to imgSize) as.load8(UInt(addr + x), UByte(image(x).byteValue()))
 
       val entry = MMU_ENTRY(None, memory = Some(as))
       mtab(page) = Some(entry)
@@ -143,12 +143,12 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   @inline
   def put8(register16: Register16, value: Register8): Unit = {
-    put8(register16.get16.toInt(), value.get8().toUByte())
+    put8(register16.get16.toInt, value.get8().toUByte)
   }
 
   @inline
   def put8(register16: Register16, value: UByte): Unit = {
-    put8(register16.get16.toInt(), value)
+    put8(register16.get16.toInt, value)
   }
 
   @inline
@@ -191,18 +191,18 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   def out8(address: Int, value: UByte): Unit = {
     //if(address < 0x08 || address > 0x12) Utils.outln(s"MMU: Write to port: 0x${address.toHexString}, value: 0x${value.toInt.toHexString}")
     iotab(address & 0xff) match {
-      case None => Utils.outln(s"MMU: Write to unconnected port.  Port:0x${address.toHexString}  Value: 0x${value.toHexString()}")
+      case None => Utils.outln(s"MMU: Write to unconnected port.  Port:0x${address.toHexString}  Value: 0x${value.toHexString}")
       case Some(pmu:PortMappedDevice) => pmu.action(UInt(address), value, isWrite = true)
     }
 
   }
 
   def out8(r1: Register8, value: UByte): Unit = {
-    out8(r1.intValue, value)
+    out8(r1.intValue(), value)
   }
 
   def out8(r1: Register8, value: Int): Unit = {
-    out8(r1.intValue, UByte(value.byteValue()))
+    out8(r1.intValue(), UByte(value.byteValue()))
   }
 
   def in8(address: Int): UByte = {

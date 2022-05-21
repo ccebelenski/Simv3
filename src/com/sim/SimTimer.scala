@@ -4,6 +4,8 @@ import com.sim.device.{BasicDevice, BasicUnit}
 import com.sim.machine.AbstractMachine
 import com.sim.unsigned.UInt
 
+import scala.collection.mutable
+
 
 class SimTimer(override val machine: AbstractMachine) extends BasicDevice(machine) {
 
@@ -12,10 +14,10 @@ class SimTimer(override val machine: AbstractMachine) extends BasicDevice(machin
 
   override def handles(value: UInt): Boolean = ???
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
   /* sim_show_timers - show running timer information */
-  override def showCommand(sb: StringBuilder): Unit = {
+  override def showCommand(sb: mutable.StringBuilder): Unit = {
     super.showCommand(sb)
 
     val inst_per_sec = SimTimer.internal_timer.sim_timer_inst_per_sec()
@@ -24,7 +26,7 @@ class SimTimer(override val machine: AbstractMachine) extends BasicDevice(machin
     if (SimTimer.OSSleepMin_ms != SimTimer.OSSleepInc_ms)
       sb.append(f"Minimum Host Sleep Incr Time:  ${SimTimer.OSSleepInc_ms}%d ms\n")
     sb.append(f"Host Clock Resolution:         ${SimTimer.sim_os_clock_resolution_ms}%d ms\n")
-    sb.append(f"Execution Rate:                ${inst_per_sec}%d cycles/sec\n")
+    sb.append(f"Execution Rate:                $inst_per_sec%d cycles/sec\n")
     if (SimTimer.sim_idle_enab) {
       sb.append("Idling:                        Enabled\n")
       sb.append(f"Time before Idling starts:     ${SimTimer.sim_idle_stable}%d seconds\n")
@@ -222,7 +224,7 @@ object SimTimer {
   }
 
 
-  def timerActivateAfter(unit: BasicUnit, usecs: Long) = ???
+  def timerActivateAfter(unit: BasicUnit, usecs: Long): Nothing = ???
 
   // TODO from sim_timer.c
   def _sim_timer_activate_time(unit: BasicUnit): Long = {

@@ -12,7 +12,7 @@ abstract class BasicBus(val busSize:UInt) extends Named{
   def addRegion(region:BusRegion) : Unit
   def removeRegion(region:BusRegion) : Unit
 
-  def toString():String
+  def toString:String
 
 
 

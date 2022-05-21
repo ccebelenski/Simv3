@@ -12,16 +12,16 @@ given ushort2uint: Conversion[UShort, UInt] = UInt(_)
 
 // implicit def ubyte2ulong(x: UByte): ULong = ULong(x.toLong)
 given ubyte2ulong: Conversion[UByte, ULong] with {
-  def apply(x:UByte) : ULong = ULong(x.toLong())
+  def apply(x:UByte) : ULong = ULong(x.toLong)
 }
 
 //implicit def ushort2ulong(x: UShort): ULong = ULong(x.toLong)
 given ushort2ulong: Conversion[UShort, ULong] with
-{def apply(x:UShort) : ULong = ULong(x.toLong())}
+{def apply(x:UShort) : ULong = ULong(x.toLong)}
 
 // implicit def uint2ulong(x: UInt): ULong = ULong(x.toLong)
 given uint2ulong: Conversion[UInt, ULong] with {
-  def apply(x:UInt) : ULong = ULong(x.toLong())
+  def apply(x:UInt) : ULong = ULong(x.toLong)
 }
 
 given uint2int: Conversion[UInt, Int] with {
@@ -228,27 +228,27 @@ trait ULongOrdering extends Ordering[ULong] {
 implicit object ULongOrdering extends ULongOrdering
 
 trait UByteIsIntegral extends Integral[UByte] {
-  def plus(x: UByte, y: UByte): UByte = (x + y).toUByte()
+  def plus(x: UByte, y: UByte): UByte = (x + y).toUByte
 
-  def minus(x: UByte, y: UByte): UByte = (x - y).toUByte()
+  def minus(x: UByte, y: UByte): UByte = (x - y).toUByte
 
-  def times(x: UByte, y: UByte): UByte = (x * y).toUByte()
+  def times(x: UByte, y: UByte): UByte = (x * y).toUByte
 
-  def quot(x: UByte, y: UByte): UByte = (x / y).toUByte()
+  def quot(x: UByte, y: UByte): UByte = (x / y).toUByte
 
-  def rem(x: UByte, y: UByte): UByte = (x % y).toUByte()
+  def rem(x: UByte, y: UByte): UByte = (x % y).toUByte
 
-  def negate(x: UByte): UByte = (-x).toUByte()
+  def negate(x: UByte): UByte = (-x).toUByte
 
   def fromInt(x: Int): UByte = UByte(x.toByte)
 
-  def toInt(x: UByte): Int = x.toInt()
+  def toInt(x: UByte): Int = x.toInt
 
-  def toLong(x: UByte): Long = x.toLong()
+  def toLong(x: UByte): Long = x.toLong
 
-  def toFloat(x: UByte): Float = x.toFloat()
+  def toFloat(x: UByte): Float = x.toFloat
 
-  def toDouble(x: UByte): Double = x.toDouble()
+  def toDouble(x: UByte): Double = x.toDouble
 }
 
 implicit object UByteIsIntegral extends UByteIsIntegral with UByteOrdering {
@@ -256,27 +256,27 @@ implicit object UByteIsIntegral extends UByteIsIntegral with UByteOrdering {
 }
 
 trait UShortIsIntegral extends Integral[UShort] {
-  def plus(x: UShort, y: UShort): UShort = (x + y).toUShort()
+  def plus(x: UShort, y: UShort): UShort = (x + y).toUShort
 
-  def minus(x: UShort, y: UShort): UShort = (x - y).toUShort()
+  def minus(x: UShort, y: UShort): UShort = (x - y).toUShort
 
-  def times(x: UShort, y: UShort): UShort = (x * y).toUShort()
+  def times(x: UShort, y: UShort): UShort = (x * y).toUShort
 
-  def quot(x: UShort, y: UShort): UShort = (x / y).toUShort()
+  def quot(x: UShort, y: UShort): UShort = (x / y).toUShort
 
-  def rem(x: UShort, y: UShort): UShort = (x % y).toUShort()
+  def rem(x: UShort, y: UShort): UShort = (x % y).toUShort
 
-  def negate(x: UShort): UShort = (-x).toUShort()
+  def negate(x: UShort): UShort = (-x).toUShort
 
   def fromInt(x: Int): UShort = UShort(x.toShort)
 
-  def toInt(x: UShort): Int = x.toInt()
+  def toInt(x: UShort): Int = x.toInt
 
-  def toLong(x: UShort): Long = x.toLong()
+  def toLong(x: UShort): Long = x.toLong
 
-  def toFloat(x: UShort): Float = x.toFloat()
+  def toFloat(x: UShort): Float = x.toFloat
 
-  def toDouble(x: UShort): Double = x.toDouble()
+  def toDouble(x: UShort): Double = x.toDouble
 }
 
 implicit object UShortIsIntegral extends UShortIsIntegral with UShortOrdering {
@@ -298,13 +298,13 @@ trait UIntIsIntegral extends Integral[UInt] {
 
   def fromInt(x: Int): UInt = UInt(x)
 
-  def toInt(x: UInt): Int = x.toInt()
+  def toInt(x: UInt): Int = x.toInt
 
-  def toLong(x: UInt): Long = x.toLong()
+  def toLong(x: UInt): Long = x.toLong
 
-  def toFloat(x: UInt): Float = x.toFloat()
+  def toFloat(x: UInt): Float = x.toFloat
 
-  def toDouble(x: UInt): Double = x.toDouble()
+  def toDouble(x: UInt): Double = x.toDouble
 }
 
 implicit object UIntIsIntegral extends UIntIsIntegral with UIntOrdering {
@@ -326,13 +326,13 @@ trait ULongIsIntegral extends Integral[ULong] {
 
   def fromInt(x: Int): ULong = ULong(x)
 
-  def toInt(x: ULong): Int = x.toInt()
+  def toInt(x: ULong): Int = x.toInt
 
-  def toLong(x: ULong): Long = x.toLong()
+  def toLong(x: ULong): Long = x.toLong
 
-  def toFloat(x: ULong): Float = x.toFloat()
+  def toFloat(x: ULong): Float = x.toFloat
 
-  def toDouble(x: ULong): Double = x.toDouble()
+  def toDouble(x: ULong): Double = x.toDouble
 }
 
 implicit object ULongIsIntegral extends ULongIsIntegral with ULongOrdering {
@@ -424,24 +424,24 @@ class RichUInt(x: UInt) {
 
 trait Unsigned[U <: Unsigned[U, Promoted, SignedPromoted], Promoted <: Unsigned[_, Promoted, SignedPromoted], SignedPromoted] extends Any with ScalaNumericAnyConversions {
 
-  def toByte(): Byte
+  def toByte: Byte
 
-  def toChar(): Char
+  def toChar: Char
 
-  def toShort(): Short
+  def toShort: Short
 
-  def toInt(): Int
+  def toInt: Int
 
-  def toLong(): Long
+  def toLong: Long
 
-  def toFloat(): Float
+  def toFloat: Float
 
-  def toDouble(): Double
+  def toDouble: Double
 
-  def toUByte(): UByte
-  def toUShort(): UShort
-  def toUInt(): UInt
-  def toULong(): ULong
+  def toUByte: UByte
+  def toUShort: UShort
+  def toUInt: UInt
+  def toULong: ULong
 
   def byteValue(): Byte
 
@@ -456,7 +456,7 @@ trait Unsigned[U <: Unsigned[U, Promoted, SignedPromoted], Promoted <: Unsigned[
   def doubleValue(): Double
 
   // Implementing ScalaNumber
-  def isWhole(): Boolean = {
+  def isWhole: Boolean = {
     true
   }
 
@@ -567,13 +567,13 @@ trait Unsigned[U <: Unsigned[U, Promoted, SignedPromoted], Promoted <: Unsigned[
   def >>(x : ULong): Promoted
   def >>>(x : ULong): Promoted
 
-  def toString(): String
+  def toString: String
 
   def +(x: java.lang.String): String
 
-  def toHexString(): String
+  def toHexString: String
 
-  def toOctalString(): String
+  def toOctalString: String
 
-  def toBinaryString(): String
+  def toBinaryString: String
 }

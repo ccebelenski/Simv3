@@ -4,6 +4,7 @@ import com.sim.term.{Term, VT100TerminalModel}
 
 import java.awt.{BorderLayout, Dimension}
 import javax.swing.{JFrame, JRootPane, WindowConstants}
+import scala.collection.mutable
 
 abstract class ConsoleUnit(device:BasicDevice) extends BasicUnit(device:BasicDevice) {
 
@@ -20,7 +21,7 @@ abstract class ConsoleUnit(device:BasicDevice) extends BasicUnit(device:BasicDev
 
   frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
   frame.setUndecorated(true)
-  frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+  frame.getRootPane.setWindowDecorationStyle(JRootPane.FRAME)
   frame.setSize(d)
   frame.setPreferredSize(d)
   frame.setMinimumSize(d)
@@ -40,5 +41,5 @@ abstract class ConsoleUnit(device:BasicDevice) extends BasicUnit(device:BasicDev
 
   def getTerminal:ConsoleTerminal = t
 
-  override def optionChanged(sb: StringBuilder): Unit = ???
+  override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 }
