@@ -3,5 +3,6 @@
   <component name="ScalaProjectSettings">
     <option name="implicitParametersSearchDepth" value="4" />
     <option name="scala3DisclaimerShown" value="true" />
+    <option name="treatDocCommentAsBlockComment" value="true" />
   </component>
 </project>

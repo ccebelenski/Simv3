@@ -45,6 +45,8 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
   // We only have one unit, the main serial port.  Because of this we can take some shortcuts.
   var SIOUnit: S100SIOUnit = _
 
+  debug = false
+
   override def init(): Unit = {
 
     // Create a default serial console unit
@@ -119,12 +121,10 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
     } else if (action == 0x11) {
 
       if (isWrite) {
-        if(value.intValue() < 10 || value.intValue() > 125)
-          {
-            Utils.outln(s"Char = ${value.intValue()} : ${value.byteValue.toChar} SP: ${this.machine.getCPU.SP.get16.intValue().toHexString}")
-            Utils.outln(s"PC: ${machine.getCPU.PC.toHexString} CF: ${this.mmu.get16(machine.getCPU.SP.get16).toHexString}")
-          }
-        //Utils.outln(s"${this.machine.getCPU.PC.get16.intValue().toHexString} - SP:${this.machine.getCPU.SP.get16.intValue().toHexString}")
+        //        if(value.intValue() < 10 || value.intValue() > 125)
+        //          {
+        Utils.outlnd(this, s"Char: ${value.intValue()}\t: ${value.byteValue.toChar}")
+        //          }
         SIOUnit.getTerminal.print(s"${value.byteValue.toChar}")
         UByte(0)
       } else {
@@ -143,7 +143,7 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
       if (isWrite) UByte(0) // ignore
       else CAN_WRITE
     } else {
-      Utils.outln(s"$getName: Misconfiguration, write to port ${action.toHexString} value ${value.toHexString}")
+      Utils.outlnd(this, s"$getName: Misconfiguration, write to port ${action.toHexString} value ${value.toHexString}")
       UByte(0)
     }
   }

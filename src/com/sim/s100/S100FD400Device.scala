@@ -1,5 +1,6 @@
 package com.sim.s100
 
+import com.sim.Utils
 import com.sim.cpu.Z80MMU
 import com.sim.device.{BinaryUnitOption, Bootable, PortMappedDiskDevice, SupportsOptions}
 import com.sim.unsigned.{UByte, UInt}
@@ -216,7 +217,7 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
 
     if (current_disk.isEmpty) {
       // Un-available drive selected
-      //Utils.outln(s"$getName: Unavailable drive unit selected.")
+      Utils.outlnd(this, s"$getName: Unavailable drive unit selected.")
 
       return 0xff // nothing we can do
     }
@@ -226,23 +227,23 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
 
       val cd = current_disk.get
       if (cd.dirty) cd.writebuf()
-      //Utils.outln(s"$getName: read sector position. ST:${cd.sector_true}  Flag:${cd.current_flag}")
+      Utils.outlnd(this, s"$getName: read sector position. ST:${cd.sector_true}  Flag:${cd.current_flag}")
 
-      if ((cd.current_flag & 0x04) != 0) { // head loaded?}
+      val rtn = if ((cd.current_flag & 0x04) != 0) { // head loaded?}
         cd.sector_true ^= 1
         if (cd.sector_true == 0) {
           cd.current_sector += 1
           if (cd.current_sector >= cd.DSK_SECT) cd.current_sector = 0
-          //Utils.outln(s"*** CS now: ${cd.current_sector} CT:${cd.current_track} Byte:$readbytes")
+          Utils.outlnd(this, s"CS now: ${cd.current_sector} CT:${cd.current_track} Byte:${cd.current_byte}")
           cd.current_byte = 0xff
 
         }
         // return sector number and sector true and set 'unused' bits
         // Just set to a val so it can be seen quicker in debugger.
-        val rtn = (((cd.current_sector << 1) & 0x3e) | 0xc0 | cd.sector_true) & 0xff
-        return rtn
-      } else return 0xff // Head not loaded
+        (((cd.current_sector << 1) & 0x3e) | 0xc0 | cd.sector_true) & 0xff
+      } else 0xff // Head not loaded
 
+      return rtn
     }
 
     val cd = current_disk.get
@@ -261,15 +262,15 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
       cd.current_sector = 0xff
       cd.current_byte = 0xff
 
-      //Utils.outln(s"$getName: Step in.  CT: ${cd.current_track}")
-      //Utils.outln(s"$getName: Call from: ${machine.cpu.PC.toHexString}")
+      //Utils.outlnd(this, s"$getName: Step in.  CT: ${cd.current_track}")
+      //Utils.outlnd(this, s"$getName: Call from: ${machine.cpu.PC.toHexString}")
     }
     if ((action & 0x02) != 0) {
       // Step head out
       if (cd.current_track == 0) {
         // Stuck disk, unnecessary step out.
-        //Utils.outln(s"$getName: Stuck-disk - Unnecessary step out.")
-        //Utils.outln(s"$getName: Call from: ${machine.cpu.PC.toHexString}")
+        Utils.outlnd(this, s"$getName: Stuck-disk - Unnecessary step out.")
+        Utils.outlnd(this, s"$getName: Call from: ${machine.cpu.PC.toHexString}")
       }
       cd.current_track -= 1
       if (cd.current_track < 0) {
@@ -280,18 +281,17 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
       cd.current_sector = 0xff
       cd.current_byte = 0xff
 
-      //Utils.outln(s"$getName: Step out.  CT: ${cd.current_track}")
-      //Utils.outln(s"$getName: Call from: ${machine.cpu.PC.toHexString}")
+      //Utils.outlnd(this, s"$getName: Step out.  CT: ${cd.current_track}")
+      //Utils.outlnd(this, s"$getName: Call from: ${machine.cpu.PC.toHexString}")
     }
 
     if (cd.dirty) cd.writebuf()
 
     if ((action & 0x04) != 0) {
       // head load
-      //Utils.outln(s"$getName: Head load.")
+      Utils.outlnd(this, s"$getName: Head load.")
       cd.current_flag |= 0x04 // turn on head loaded bit
       cd.current_flag |= 0x80 // Turn on 'read data available'
-
 
     }
 
@@ -302,7 +302,7 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
       cd.current_sector = 0xff
       cd.current_byte = 0xff
 
-      //Utils.outln(s"$getName: Head unload.")
+      Utils.outlnd(this, s"$getName: Head unload.")
     }
 
     // interrupts and head current are ignored
@@ -316,14 +316,12 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
   }
 
 
-  var readbytes = 0
-
   // Disk Data in/out
   def dsk0a(action: Int, isWrite: Boolean): Int = {
 
     if (current_disk.isEmpty) {
       // Un-available drive selected
-      //Utils.outln(s"$getName: Unavailable drive selected for I/O.")
+      Utils.outlnd(this, s"$getName: Unavailable drive selected for I/O.")
 
       return 0 // nothing we can do
     }
@@ -332,15 +330,12 @@ class S100FD400Device(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exte
     if (!isWrite) {
       if (cd.current_byte >= cd.DSK_SECTSIZE) {
         // Physically read the sector
-        //Utils.outln(s"$getName: READ: Sector:${cd.current_sector} Track:${cd.current_track} Byte:${readbytes}")
-        readbytes = 0
         cd.readSector()
+        Utils.outlnd(this, s"$getName: PHYREAD: Sector:${cd.current_sector} Track:${cd.current_track} Byte:${cd.current_byte}")
       }
       val rtn = cd.byteBuffer.get(cd.current_byte) & 0xff
-      //Utils.outln(s"$getName: Read: ${rtn.intValue()} CB:${cd.current_byte} LIM:${cd.DSK_SECTSIZE}")
-      //Utils.outln(s"$getName: READ: Sector:${cd.current_sector} Track:${cd.current_track} Byte:${cd.current_byte}  Value:$rtn")
+      Utils.outlnd(this, s"$getName: READ: PC: ${machine.cpu.PC.intValue().toHexString} Sector:${cd.current_sector} Track:${cd.current_track} Byte:${cd.current_byte.toHexString}\tLIM:${cd.DSK_SECTSIZE}\tValue:$rtn")
       cd.current_byte += 1
-      readbytes += 1
       //cd.current_flag &= 0xfe
 
       return rtn

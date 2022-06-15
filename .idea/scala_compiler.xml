@@ -5,7 +5,6 @@
     <option name="implicitConversions" value="true" />
     <option name="higherKinds" value="true" />
     <option name="existentials" value="true" />
-    <option name="explainTypeErrors" value="true" />
     <option name="debuggingInfoLevel" value="Notailcalls" />
   </component>
 </project>

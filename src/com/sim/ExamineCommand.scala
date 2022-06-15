@@ -23,7 +23,7 @@ class EM extends Command {
       case Some(m: AbstractMachine) =>
         val cpu = m.getCPU
         try {
-          val start = Integer.decode(tokenArray(0))
+          //val start = Integer.decode(tokenArray(0))
           if (tokenArray.length == 1) {
             // Single byte
             val addr = Integer.decode(tokenArray(0))
@@ -116,12 +116,10 @@ object HexDump {
         for (i <- numBytesRead until bufferSize) {
           sb.append(" ")
         }
-        sb.append("|\n")
+        sb.append("|\n\r")
 
         offset += bufferSize
       }
     }
   }
-
-
 }

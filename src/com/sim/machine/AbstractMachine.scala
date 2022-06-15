@@ -132,7 +132,7 @@ abstract class AbstractMachine extends Named {
 
   def showBreaks(sb:mutable.StringBuilder):Unit = {
     breakpoints.foreach(b => {
-      sb.append(f"${b.intValue}%08X\n\r")
+      sb.append(f"${b.intValue}%08X" + "\n\r")
     })
   }
 

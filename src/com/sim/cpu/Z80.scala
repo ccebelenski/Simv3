@@ -149,7 +149,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     val bit5 = if ((AF & 32) != 0) true else false
     val z = if ((AF & FLAG_Z) != 0) true else false
     val s = if ((AF & FLAG_S) != 0) true else false
-    val str = f"${F.toBinaryString}%8s".replaceAll(" ", "0")
+    val str = F.toBinaryString.replaceAll(" ", "0")
     s"\n\rF=$str  :  S=$s  Z=$z  H=$h  P/V=$pv  N=$addsub  C=$carry"
 
   }
@@ -2037,7 +2037,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
         if (machine.checkBreak(PC.toUInt) && lastBreak != PC.toUInt && !singleStep) {
           execute = false
           lastBreak = PC.toUInt
-          Utils.outln(f"\n\rZ80: Break at: ${PC.intValue()}%05X")
+          Utils.outln("\n\r" + f"Z80: Break at: ${PC.intValue()}%05X")
 
         } else {
           lastBreak = UInt(0)
@@ -2548,8 +2548,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   @inline
   private final def ICP(r1: Register8): Unit = {
     val temp: UByte = r1.get8()
-    val acu: UByte = A.get8()
+
     AF((AF & ~0x28) | (temp & 0x28))
+    val acu: UByte = A.get8()
     val sum: UInt = acu - temp
     val cbits: UInt = acu ^ temp ^ sum
     AF((AF & ~0xff) | cpTable(sum & 0xff) | (temp & 0x28) | SET_PV(cbits) | cbits2Table(cbits & 0x1ff))
@@ -4038,7 +4039,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     var acu: Int = 0
     if (BC.get16 == 0) BC(0x10000)
     while ( {
-      BC.decrement()
       BC.get16 != 0
     }) {
       addTStates(21)
@@ -4050,6 +4050,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       HL.increment()
       MMU.put8(DE, acu)
       DE.increment()
+      BC.decrement()
     }
     acu += A
     AF((AF & ~0x3e) | (acu & 8) | ((acu & 2) << 4))
@@ -4097,7 +4098,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
     var acu: Int = 0
     while ( {
-      temp -= 1
       temp != 0
     }) {
       addTStates(21)
@@ -4106,7 +4106,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       acu = MMU.in8(C)
       MMU.put8(HL, acu)
       HL.increment()
-
+      temp -= 1
     }
     temp = B.get8()
     B(0)
@@ -4120,7 +4120,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     var acu = 0
     if (temp == 0) temp = 0x100
     while ( {
-      temp -= 1
       temp != 0
     }) {
       addTStates(21)
@@ -4129,6 +4128,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       acu = MMU.get8(HL)
       MMU.out8(C, acu)
       HL.increment()
+      temp -= 1
     }
     temp = B
     B(0)
@@ -4141,7 +4141,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     var acu: Int = 0
     if (BC.get16 == 0) BC(0x10000)
     while ( {
-      BC.decrement()
       BC.get16 != 0
     }) {
       addTStates(21)
@@ -4153,6 +4152,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       HL.decrement()
       MMU.put8(DE, acu)
       DE.decrement()
+      BC.decrement()
     }
     acu += A.get8()
     AF((AF & ~0x3e) | (acu & 8) | ((acu & 2) << 4))
@@ -4198,7 +4198,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
     var acu: Int = 0
     while ( {
-      temp -= 1
       temp != 0
     }) {
       addTStates(21)
@@ -4207,7 +4206,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       acu = MMU.in8(C)
       MMU.put8(HL, acu)
       HL.decrement()
-
+      temp -= 1
     }
     temp = B
     B(0)
@@ -4222,7 +4221,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
     var acu: Int = 0
     while ( {
-      temp -= 1
       temp != 0
     }) {
       addTStates(21)
@@ -4231,7 +4229,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       acu = MMU.in8(C)
       MMU.put8(HL, acu)
       HL.decrement()
-
+      temp -= 1
     }
     temp = B
     B(0)
