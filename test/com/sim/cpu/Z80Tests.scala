@@ -719,6 +719,55 @@ class Z80Tests {
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_S))
 
+    // A = -2
+    z80.resetCPU()
+    z80.A(0xFF)
+    z80.PC(0x0000)
+    z80.deposit(address = 0x0000, 0xdd) // DD prefix
+    z80.deposit(address = 0x0001, 0x21) // LD IX,nnnn
+    z80.deposit(address = 0x0002, 0x07) // 00 load
+    z80.deposit(address = 0x0003, 0x00) // 00 load
+    z80.deposit(address = 0x0004, 0xdd) // DD prefix
+    z80.deposit(0x0005, 0x86) // ADD A,(IX+n)
+    z80.deposit(address = 0x0006, 0x01) // +1
+    z80.deposit(address = 0x0007, 0x76) // HALT
+
+    z80.deposit(address = 0x0008, 0xFF) // 0x0001
+    z80.deposit(address = 0x0009, 0x00)
+
+    z80.runcpu()
+    assertEquals(0x0007, z80.IX.get16.intValue())
+    assertEquals(0xFE, z80.A.get8().intValue())
+    assertFalse(z80.testFlag(z80.F, z80.FLAG_Z))
+    assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
+    assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
+    assertTrue(z80.testFlag(z80.F, z80.FLAG_S))
+
+    // A = 0
+    z80.resetCPU()
+    z80.A(0x01)
+    z80.PC(0x0000)
+    z80.deposit(address = 0x0000, 0xdd) // DD prefix
+    z80.deposit(address = 0x0001, 0x21) // LD IX,nnnn
+    z80.deposit(address = 0x0002, 0x07) // 00 load
+    z80.deposit(address = 0x0003, 0x00) // 00 load
+    z80.deposit(address = 0x0004, 0xdd) // DD prefix
+    z80.deposit(0x0005, 0x86) // ADD A,(IX+n)
+    z80.deposit(address = 0x0006, 0x01) // 1
+    z80.deposit(address = 0x0007, 0x76) // HALT
+
+    z80.deposit(address = 0x0008, 0xFF) // -1
+    z80.deposit(address = 0x0009, 0x00)
+
+    z80.runcpu()
+    assertEquals(0x0007, z80.IX.get16.intValue())
+    assertEquals(0x00, z80.A.get8().intValue())
+    assertTrue(z80.testFlag(z80.F, z80.FLAG_Z))
+    assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
+    assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
+    assertFalse(z80.testFlag(z80.F, z80.FLAG_S))
+
+
     // A = -1, IY
     z80.resetCPU()
     z80.A(0xFF)
