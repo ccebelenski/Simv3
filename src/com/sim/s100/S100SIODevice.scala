@@ -129,7 +129,7 @@ class S100SIODevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) extend
         UByte(0)
       } else {
         // read char
-        val b: Byte = SIOUnit.inputBuffer.dequeue()
+        val b: Byte = if(SIOUnit.inputBuffer.nonEmpty) SIOUnit.inputBuffer.dequeue() else 0
         if (SIOUnit.inputBuffer.isEmpty) {
 
           SIOUnit.inputCharacterWaiting = false
