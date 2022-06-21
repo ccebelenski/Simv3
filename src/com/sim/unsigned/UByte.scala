@@ -10,5 +10,5 @@ case class UByte(override val byteValue: Byte) extends AnyVal with SmallUInt[UBy
 
 object UByte {
   def MinValue(): UByte = {UByte(0)}
-  def MaxValue(): UByte  = {UByte(~0)}
+  def MaxValue(): UByte  = {UByte(255.byteValue)}
 }

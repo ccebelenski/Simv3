@@ -333,7 +333,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     if (B.get8() != 0) {
       // Jump
       addTStates(13)
-      PC(PC.get16 + MMU.get8(PC) + 1)
+      PC(PC.get16 + MMU.get8(PC).byteValue + 1)
     } else {
       PC.increment()
       addTStates(8)
@@ -390,7 +390,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // JR dd
   private final def fn0x18(x: Int): Unit = {
     addTStates(12)
-    PC(PC + MMU.get8(PC) + 1)
+    PC(PC + MMU.get8(PC).byteValue + 1)
   }
 
   // ADD HL, DE
@@ -444,7 +444,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       addTStates(7)
       PC.increment()
     } else {
-      PC(PC + MMU.get8(PC) + 1)
+      PC(PC + MMU.get8(PC).byteValue + 1)
       addTStates(12)
     }
   }
@@ -520,7 +520,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def fn0x28(x: Int): Unit = {
     if (testFlag(F, FLAG_Z)) {
       addTStates(12)
-      PC(PC + MMU.get8(PC) + 1)
+      PC(PC + MMU.get8(PC).byteValue + 1)
     } else {
       PC.increment()
       addTStates(7)
@@ -578,7 +578,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def fn0x30(x: Int): Unit = {
     if (!testFlag(F, FLAG_C)) {
       addTStates(12)
-      PC(PC + MMU.get8(PC) + 1)
+      PC(PC + MMU.get8(PC).byteValue + 1)
     } else {
       PC.increment()
       addTStates(7)
@@ -644,7 +644,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def fn0x38(x: Int): Unit = {
     if (testFlag(F, FLAG_C)) {
       addTStates(12)
-      PC(PC + MMU.get8(PC) + 1)
+      PC(PC + MMU.get8(PC).byteValue + 1)
     } else {
       PC.increment()
       addTStates(7)
@@ -2112,8 +2112,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       onHalt(singleStep | lastBreak != 0)
     } catch {
       case t: Throwable =>
-        Utils.outln(s"SIM: Exception: ${t.getMessage}\n\r${t.toString}\n\r")
-        t.getStackTrace.foreach(x => Utils.outln(msg = s"${x.toString}\n\r"))
+        Utils.outln(s"SIM: Exception: ${t.getMessage}\n\r")
+        t.getStackTrace.foreach(x => Utils.outln(msg = s"${x.toString}"))
         onHalt(singleStep | lastBreak != 0)
         throw t
     }
@@ -2558,7 +2558,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def LDIDXdd(r1: Register8, ridx: Register16): Unit = {
-    val adr: Int = ridx.get16.intValue + MMU.get8(PC)
+    val adr: Int = ridx.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     r1(MMU.get8(adr))
@@ -2566,7 +2566,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def LDIDXdd(ridx: Register16, r1: Register8): Unit = {
-    val adr = ridx.get16.intValue + MMU.get8(PC)
+    val adr = ridx.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     MMU.put8(adr, r1)
@@ -2586,7 +2586,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def INCIDXdd(r1: Register16): Unit = {
-    val adr: Int = r1.get16.intValue + MMU.get8(PC)
+    val adr: Int = r1.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     val temp: UByte = UByte((MMU.get8(adr) + UByte(1)).toByte)
@@ -2596,7 +2596,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def DECIDXdd(r1: Register16): Unit = {
-    val adr: Int = r1.get16.intValue + MMU.get8(PC)
+    val adr: Int = r1.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     val temp: UByte = UByte((MMU.get8(adr) - UByte(1)).toByte)
@@ -2606,7 +2606,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def ANDIDXdd(r1: Register16): Unit = {
-    val adr: Int = r1.get16.intValue + MMU.get8(PC)
+    val adr: Int = r1.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     AF(andTable(((AF >> 8) & MMU.get8(adr)) & 0xff))
@@ -2614,7 +2614,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def XORIDXdd(r1: Register16): Unit = {
-    val adr: Int = r1.get16.intValue + MMU.get8(PC)
+    val adr: Int = r1.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     AF(xororTable(((AF >> 8) ^ MMU.get8(adr)) & 0xff))
@@ -2622,7 +2622,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def ORIDXdd(r1: Register16): Unit = {
-    val adr: Int = r1.get16.intValue + MMU.get8(PC)
+    val adr: Int = r1.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     AF(xororTable(((AF >> 8) | MMU.get8(adr)) & 0xff))
@@ -2640,7 +2640,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   @inline
   private final def CPIDXdd(r1: Register16): Unit = {
-    val adr: Int = r1.get16.intValue + MMU.get8(PC)
+    val adr: Int = r1.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     val temp: UByte = MMU.get8(adr)
@@ -3085,7 +3085,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // LD (IX+dd),nn
   private final def fn0xdd0x36(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IX + MMU.get8(PC)
+    val adr: Int = IX + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     MMU.put8(adr, MMU.get8(PC))
@@ -3339,7 +3339,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // ADD A,(IX+dd)
   private final def fn0xdd0x86(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IX.get16 + MMU.get8(PC).intValue
+    val adr: Int = IX.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     W(MMU.get8(adr))
@@ -3361,7 +3361,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // ADC A,(IX+dd)
   private final def fn0xdd0x8e(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IX + MMU.get8(PC)
+    val adr: Int = IX + MMU.get8(PC).byteValue
     CHECK_LOG_BYTE(adr)
     W(MMU.get8(adr))
     ADCIDX(A, W)
@@ -3370,7 +3370,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // SUB (IX+dd)
   private final def fn0xdd0x96(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IX + MMU.get8(PC)
+    val adr: Int = IX + MMU.get8(PC).byteValue
     CHECK_LOG_BYTE(adr)
     val temp: UByte = MMU.get8(adr)
     val acu: UByte = A.get8()
@@ -3407,7 +3407,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // SBC A,(IX+dd)
   private final def fn0xdd0x9e(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IX + MMU.get8(PC)
+    val adr: Int = IX + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     W(MMU.get8(adr))
@@ -3488,7 +3488,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   //  DD CB PREFIX
   private final def fn0xdd0xcb(x: Int): Unit = {
-    val adr: Int = IX.get16.intValue + MMU.get8(PC)
+    val adr: Int = IX.get16.intValue + MMU.get8(PC).byteValue
     PC.increment()
     INCR(1)
     val op: Int = MMU.get8(PC)
@@ -4381,7 +4381,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // LD (IY+dd),nn
   private final def fn0xfd0x36(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IY.get16.intValue + MMU.get8(PC).intValue
+    val adr: Int = IY.get16 + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     MMU.put8(adr, MMU.get8(PC))
@@ -4632,10 +4632,10 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // ADD A,(IY+dd)
   private final def fn0xfd0x86(x: Int): Unit = {
     addTStates(19)
-    val adr: UInt = IY.get16 + MMU.get8(PC)
+    val adr: Int = IY.get16 + MMU.get8(PC).byteValue
     PC.increment()
-    CHECK_LOG_BYTE(adr.intValue)
-    W(MMU.get8(adr.intValue))
+    CHECK_LOG_BYTE(adr)
+    W(MMU.get8(adr))
     ADDIDX(A, W)
   }
 
@@ -4654,20 +4654,20 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // ADC A,(IY+dd)
   private final def fn0xfd0x8e(x: Int): Unit = {
     addTStates(19)
-    val adr: UInt = IY.get16 + MMU.get8(PC)
+    val adr: Int = IY.get16 + MMU.get8(PC).byteValue
     PC.increment()
-    CHECK_LOG_BYTE(adr.intValue)
-    W(MMU.get8(adr.intValue))
+    CHECK_LOG_BYTE(adr)
+    W(MMU.get8(adr))
     ADCIDX(A, W)
   }
 
   // SUB (IY+dd)
   private final def fn0xfd0x96(x: Int): Unit = {
     addTStates(19)
-    val adr: UInt = IY.get16 + MMU.get8(PC)
+    val adr: Int = IY.get16 + MMU.get8(PC).byteValue
     PC.increment()
-    CHECK_LOG_BYTE(adr.intValue)
-    W(MMU.get8(adr.intValue))
+    CHECK_LOG_BYTE(adr)
+    W(MMU.get8(adr))
     SUBIDX(W)
   }
 
@@ -4700,10 +4700,10 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // SBC A,(IY+dd)
   private final def fn0xfd0x9e(x: Int): Unit = {
     addTStates(19)
-    val adr: UInt = IY.get16 + MMU.get8(PC)
+    val adr: Int = IY.get16 + MMU.get8(PC).byteValue
     PC.increment()
-    CHECK_LOG_BYTE(adr.intValue)
-    W(MMU.get8(adr.intValue))
+    CHECK_LOG_BYTE(adr)
+    W(MMU.get8(adr))
     SBCAIDX(A, W)
   }
 
@@ -4722,7 +4722,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // AND (IY+dd)
   private final def fn0xfd0xa6(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IY + MMU.get8(PC)
+    val adr: Int = IY + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     AF(andTable(((AF >> 8) & MMU.get8(adr)) & 0xff))
@@ -4743,7 +4743,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // XOR (IY+dd)
   private final def fn0xfd0xae(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IY + MMU.get8(PC)
+    val adr: Int = IY + MMU.get8(PC).byteValue
     PC.increment()
     CHECK_LOG_BYTE(adr)
     AF(xororTable(((AF >> 8) ^ MMU.get8(adr)) & 0xff))
@@ -4778,16 +4778,16 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // CP (IY+dd)
   private final def fn0xfd0xbe(x: Int): Unit = {
     addTStates(9)
-    val adr: UInt = IY.get16 + MMU.get8(PC)
+    val adr: Int = IY.get16 + MMU.get8(PC).byteValue
     PC.increment()
-    CHECK_LOG_BYTE(adr.intValue)
-    W(MMU.get8(adr.intValue))
+    CHECK_LOG_BYTE(adr)
+    W(MMU.get8(adr))
     ICP(W)
   }
 
   // ******************************************************** FD CB Prefix
   private final def fn0xfd0xcb(x: Int): Unit = {
-    val adr: Int = IY + MMU.get8(PC)
+    val adr: Int = IY + MMU.get8(PC).byteValue
     PC.increment()
     val op: Int = MMU.get8(PC)
     fdcbprefix(op, adr)
