@@ -224,7 +224,14 @@ abstract class BasicMMU(val cpu: BasicCPU) {
     put8(address + 1, UByte(((value >> 8) & 0xFF).toByte))
   }
 
-
+// Get8 with PC increment (for consistency)
+  @inline
+  def get8PC(pc:Register16) : UByte = {
+    val nn = get8(pc.get16.intValue())
+    pc.increment()
+    nn
+}
+  
   @inline
   def get8(address: Register16): UByte = {
     get8(address.get16.intValue())

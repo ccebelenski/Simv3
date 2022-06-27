@@ -261,10 +261,10 @@ class Register8(override val nmenomic: String) extends Register(nmenomic) {
   // def set8(value: Byte): Unit = set8(UByte(value))
 
   @inline
-  def increment(): Unit = value = new UByte((value.byteValue + 1).toByte)
+  def increment(): Unit = value = new UByte((value.byteValue + 1).byteValue)
 
   @inline
-  def decrement(): Unit = value = UByte((value - UByte(1)).byteValue())
+  def decrement(): Unit = value = UByte((value.byteValue - 1).byteValue)
 
   override val aWidth = 8
 
@@ -277,11 +277,11 @@ class Register8(override val nmenomic: String) extends Register(nmenomic) {
   def apply(value: Int): Unit = set8(UByte((value & 0xff).byteValue()))
 
   def +(value: Int): Byte = {
-    ((this.value + value) & 0xff).byteValue()
+    ((this.value.byteValue + value) & 0xff).byteValue()
   }
 
   def -(value: Int): Byte = {
-    ((this.value - value) & 0xff).byteValue()
+    ((this.value.byteValue - value) & 0xff).byteValue()
   }
 
   def &(value: Int): Int = {
@@ -411,7 +411,7 @@ class Register32(override val nmenomic: String) extends Register(nmenomic) {
 
   override val aWidth = 32
 
-  override def toString: String = f"$nmenomic:0x${value.intValue}%08X"
+  override def toString: String = f"$nmenomic:0x${value.intValue()}%08X"
 
   def apply(value: UShort): Unit = set32(value)
 
