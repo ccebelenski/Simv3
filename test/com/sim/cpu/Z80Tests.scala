@@ -241,7 +241,7 @@ class Z80Tests {
     assertFalse(z80.testFlag(z80.F,z80.FLAG_N))
     assertFalse(z80.testFlag(z80.F,z80.FLAG_Z))
     assertFalse(z80.testFlag(z80.F,z80.FLAG_C))
-    assertTrue(z80.testFlag(z80.F,z80.FLAG_H))
+    assertFalse(z80.testFlag(z80.F,z80.FLAG_H))
     z80.resetCPU()
     z80.B(0xFF)
     z80.AF(0x0000)
@@ -773,7 +773,7 @@ class Z80Tests {
     assertTrue(z80.testFlag(z80.F, z80.FLAG_C))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_N))
     assertFalse(z80.testFlag(z80.F, z80.FLAG_S))
-    assertTrue(z80.testFlag(z80.F, z80.FLAG_H))
+    assertFalse(z80.testFlag(z80.F, z80.FLAG_H))
     assertTrue(z80.testFlag(z80.F, z80.FLAG_P))
 
     // A = 0
