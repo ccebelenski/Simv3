@@ -486,6 +486,18 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // DAA
   private final def fn0x27(x: Int): Unit = {
     addTStates(4)
+    val ans:Int = A.get8().intValue()
+    var incr: Int = 0
+    var carry :Boolean = testFlag(F, FLAG_C)
+    if((testFlag(F, FLAG_H)) || ((ans & 0x0f) > 0x09)) {incr = 0x06}
+    if (carry || (ans > 0x9f) || ((ans > 0x8f) && ((ans & 0x0f) > 0x09))) { incr |= 0x60}
+    if(ans > 0x99) carry = true
+    if(testFlag(F,FLAG_N)) SUB(UByte(incr.byteValue())) else ADD(A, UByte(incr.byteValue()))
+    if(carry) setFlag(F,FLAG_C, false) else setFlag(F,FLAG_C,true)
+    setPV(PARITY_TABLE(A.get8().intValue()))
+
+    /*
+    addTStates(4)
     val tmp1: UByte = A
     var tmp2 = UByte(0)
     val tmp3 = F & 1
@@ -506,7 +518,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
     F((F & 0xfe) | tmp)
     if (parity(A)) F((F & 0xfb) | 4)
-    F(F & 0xfb)
+    F(F & 0xfb)*/
   }
 
   // JR Z,dd
@@ -563,7 +575,11 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // CPL
   private final def fn0x2f(x: Int): Unit = {
     addTStates(4)
-    AF((~AF.get16 & ~0xff) | (AF & 0xc5) | ((~AF.get16 >> 8) & 0x28) | 0x12)
+    A(A.get8().intValue() ^ 0x00ff)
+    setFlag(F,FLAG_H,false)
+    setFlag(F,FLAG_N,false)
+    setUnusedFlags(A.get8().intValue())
+//    AF((~AF.get16 & ~0xff) | (AF & 0xc5) | ((~AF.get16 >> 8) & 0x28) | 0x12)
   }
 
   // JR NC,dd
@@ -653,6 +669,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setFlag(F,FLAG_C,false)
     setFlag(F,FLAG_N,true)
     setFlag(F,FLAG_H,true)
+    setUnusedFlags(A.get8().intValue())
   }
 
   // JR C,dd
@@ -708,9 +725,11 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // CCF - Complement Carry Flag
   private final def fn0x3f(x: Int): Unit = {
     addTStates(4)
+    if(testFlag(F,FLAG_C)) setH(true) else setH(false)
+    F(F.get8().intValue() ^ FLAG_C)
     setFlag(F,FLAG_N,true)
-    if(testFlag(F,FLAG_C)) setFlag(F,FLAG_H,false) else setFlag(F,FLAG_H,true)
-    if(testFlag(F,FLAG_C)) setFlag(F,FLAG_C,true) else setFlag(F,FLAG_C,false)
+    setUnusedFlags(A.get8().intValue())
+
   }
 
   // LD B,B
@@ -1549,14 +1568,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     addTStates(7)
     CHECK_LOG_BYTE(HL)
     ICP(MMU.get8(HL))
-    /*
-    val temp: UByte = MMU.get8(HL)
-    AF((AF & ~0x28) | (temp & 0x28))
-    val acu: UByte = A.get8()
-    val sum: UInt = acu - temp
-    val cbits: UInt = acu ^ temp ^ sum
-    AF((AF & ~0xff) | cpTable(sum & 0xff) | (temp & 0x28) | SET_PV(cbits) | cbits2Table(cbits & 0x1ff))
-    */
   }
 
   // CP A
@@ -2124,7 +2135,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
           }
 
-
           SimTimer.sim_interval = SimTimer.sim_interval - 1
 
         } // End Break check
@@ -2177,24 +2187,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def LOW_DIGIT(x: UByte): Int = {
     x.intValue & 0xf
   }
-/*
-  private final val incTable: Array[UByte] = {
-    for (temp <- 0 to 255) yield {
-      val t1 = (if ((temp & 0xff) == 0) 1 else 0) << 6
-      val t2 = (if ((temp & 0xf) == 0) 1 else 0) << 4
-      UByte(((temp & 0xa8) | (t1 | t2)).toByte)
-    }
-  }.toArray
-*/
- /* private final val incZ80Table: Array[UByte] = {
-    for (temp <- 0 to 255) yield {
-      val t1 = (if ((temp & 0xff) == 0) 1 else 0) << 6
-      val t2 = (if ((temp & 0xf) == 0) 1 else 0) << 4
-      val t3 = (if (temp == 0x80) 1 else 0) << 2
-      UByte(((temp & 0xa8) | (t1 | (t2 | t3))).toByte)
-    }
-  }.toArray
-*/
 
   private final val parityTable: Array[UByte] = {
     for (i <- 0 to 255) yield {
@@ -2203,86 +2195,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
         UByte(0) else UByte(4)
     }
   }.toArray
-/*
-  private final val decTable: Array[UByte] = {
-    for (temp <- 0 to 255) yield {
-      val t1: UByte = UByte(({
-        if (temp == 0) 1 else 0
-      } << 6).byteValue())
-      val t2: UByte = UByte(({
-        if ((temp & 0xf) == 0xf) 1 else 0
-      } << 4).byteValue())
-      UByte(((temp & 0xa8) | t1 | t2 | 2).toByte)
-    }
-  }.toArray
-*/
-  /*
-  private final val decZ80Table: Array[UByte] = {
-    for (temp <- 0 to 255) yield {
-      val t1 = (if ((temp & 0xff) == 0) 1 else 0) << 6
-      val t2 = (if ((temp & 0xf) == 0xf) 1 else 0) << 4
-      val t3 = (if (temp == 0x7f) 1 else 0) << 2
-      UByte(((temp & 0xa8) | (t1 | (t2 | t3)) | 2).toByte)
-    }
-  }.toArray */
-/*
-  private final val cbitsTable: Array[UInt] = {
-    for (cbits <- 0 to 511) yield {
-      UInt(cbits & 0x10 | ((cbits >> 8) & 1))
-    }
-  }.toArray */
-/*
-  private final val cbitsZ80Table: Array[UByte] = {
-    for (cbits <- 0 to 511) yield {
-      UByte(((cbits & 0x10) | (((cbits >> 6) ^ (cbits >> 5)) & 4) |
-        ((cbits >> 8) & 1)).toByte)
-    }
-  }.toArray */
-/*
-  private final val cbitsDup8Table: Array[UShort] = {
-    for (cbits <- 0 to 511) yield {
-      val t1 = if ((cbits & 0xff) == 0) 1 else 0
-      UShort(((cbits & 0x10) | ((cbits >> 8) & 1) | ((cbits & 0xff) << 8) | (cbits & 0xa8) | t1 << 6).toShort)
-    }
-  }.toArray
-*/
-/*
-  private final val cbitsZ80DupTable: Array[UShort] = {
-    for (cbits <- 0 to 511) yield {
-      UShort(((cbits & 0x10) | (((cbits >> 6) ^ (cbits >> 5)) & 4) |
-        ((cbits >> 8) & 1) | (cbits & 0xa8)).toShort)
-    }
-  }.toArray
-*/
-  /*
-  private final val cbitsDup16Table: Array[UByte] = {
-    for (cbits <- 0 to 511) yield {
-      UByte(((cbits & 0x10) | ((cbits >> 8) & 1) | (cbits & 0x28)).toByte)
-    }
-  }.toArray
-  */
-/*
-  private final val cbits2Table: Array[UByte] = {
-    for (cbits <- 0 to 511) yield {
-      UByte((cbits & 0x10 | ((cbits >> 8) & 1) | 2).byteValue())
-    }
-  }.toArray
-*/
-/*
-  private final val cbits2Z80Table: Array[UByte] = {
-    for (cbits <- 0 to 511) yield {
-      UByte(((((cbits >> 6) ^ (cbits >> 5)) & 4) | (cbits & 0x10) | 2 | ((cbits >> 8) & 1)).toByte)
-    }
-  }.toArray
-*/
-/*
-  private final val cbits2Z80DupTable: Array[UByte] = {
-    for (cbits <- 0 to 511) yield {
-      UByte(((((cbits >> 6) ^ (cbits >> 5)) & 4) | (cbits & 0x10) | 2 | ((cbits >> 8) & 1) |
-        (cbits & 0xa8)).toByte)
-    }
-  }.toArray
-*/
+
   private final val rrcaTable: Array[UShort] = {
     for (temp <- 0 to 255) yield {
       val sum = temp >> 1
@@ -2296,14 +2209,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       UShort(((sum << 8) | (sum & 0x28) | (temp & 1)).toShort)
     }
   }.toArray
-/*
-  private final val addTable: Array[UShort] = {
-    for (sum <- 0 to 511) yield {
-      val t1 = if ((sum & 0xff) == 0) 1 else 0
-      UShort((((sum & 0xff) << 8) | (sum & 0xa8) | (t1 << 6)).toShort)
-    }
-  }.toArray
-*/
+
   private final val PARITY_TABLE : Array[Boolean] = new Array(256)
   PARITY_TABLE(0) = true
   var ppp:Int  = 1
@@ -2313,30 +2219,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
     ppp = ppp * 2
   }
-  /*
-  private final val subTable: Array[UShort] = {
-    for (sum <- 0 to 255) yield {
-      val t1 = if ((sum & 0xff) == 0) 1 else 0
-      UShort((((sum & 0xff) << 8) | (sum & 0xa8) | (t1 << 6) | 2).toShort)
-    }
-  }.toArray
-  */
-/*
-  private final val andTable: Array[UShort] = {
-    for (sum <- 0 to 255) yield {
-      val t1 = if (sum == 0) 1 else 0
-      UShort(((sum << 8) | (sum & 0xa8) | (t1 << 6) | 0x10 | parityTable(sum)).toShort)
-    }
-  }.toArray
-*/
-  /*
-  private final val xororTable: Array[UShort] = {
-    for (sum <- 0 to 255) yield {
-      val t1 = if (sum == 0) 1 else 0
-      UShort(((sum << 8) | (sum & 0xa8) | (t1 << 6) | parityTable(sum)).toShort)
-    }
-  }.toArray
-*/
+
   @inline
   private final def PARITY(value: Int): UByte = parityTable(value & 0xff)
 
@@ -2346,31 +2229,14 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       UByte(((sum & 0xa8) | (t1 << 6) | PARITY(sum)).toByte)
     }
   }.toArray
-/*
-  private final val negTable: Array[UByte] = {
-    for (temp <- 0 to 255) yield {
-      val t1 = if ((temp & 0x0f) != 0) 1 else 0
-      val t2 = if (temp == 0x80) 1 else 0
-      UByte(((t1 << 4) | (t2 << 2) | 2 | {
-        if (temp != 0) 1 else 0
-      }).toByte)
-    }
-  }.toArray
-*/
+
   private final val rrdrldTable: Array[UShort] = {
     for (acu <- 0 to 255) yield {
       val t1 = if ((acu & 0xff) == 0) 1 else 0
       UShort(((acu << 8) | (acu & 0xa8) | (t1 << 6) | parityTable(acu)).toShort)
     }
   }.toArray
-/*
-  private final val cpTable: Array[UByte] = {
-    for (sum <- 0 to 255) yield {
-      val t1 = if ((sum & 0xff) == 0) 1 else 0
-      UByte(((sum & 0x80) | (t1 << 6)).toByte)
-    }
-  }.toArray
-*/
+
   // Used in DAA
   private final val parity: Array[Boolean] = {
     for (i <- 0 to 255) yield {
@@ -2447,21 +2313,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
   }
 
-  //**** Utility helpers ***** A,W
-/*  @inline
-  private final def ADDIDX(r1: Register8, r2: Register8): Unit = {
-    ADDIDX(r1, r2.get8())
-  }
-*/
-/*
-  @inline
-  private final def ADDIDX(r1: Register8, temp: UByte): Unit = {
+  //**** Utility helpers *****
 
-    val sum = r1.get8().byteValue + temp.byteValue
-    // val cbits : UInt = acu ^ tmp ^ sum
-    AF((addTable(sum & 0x1ff) | cbitsZ80Table((r1.get8().byteValue ^ temp ^ sum) & 0x1ff)) & 0xffff)
-  }
-*/
   // 16 bit ADD
   @inline
   private final def ADD(r1: Register16, r2: Register16): Unit = {
@@ -2481,10 +2334,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       r1(result)
     }
 
-    /*val sum: UInt = r1.get16 + r2.get16
-    if (r1.nmenomic == r2.nmenomic) AF((AF & ~0x3b) | cbitsDup16Table(sum.intValue >> 8))
-    else AF((AF & ~0x3b) | ((sum >> 8) & 0x28) | cbitsTable((r1 ^ r2 ^ sum) >> 8))
-    r1(sum & 0xffff) */
   }
 
   @inline
@@ -2569,9 +2418,6 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     A(v1)
     setUnusedFlags(v1)
 
-    /* val sum = t1.byteValue + t2.byteValue
-    val cbits = t1.byteValue ^ t2.byteValue ^ sum
-    AF(addTable(sum & 0x1ff) | cbitsTable(cbits & 0x1ff) | SET_PV(UInt(cbits))) */
   }
 
   @inline
@@ -2604,15 +2450,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setFlag(F,FLAG_N,true)
     A(v1)
     setUnusedFlags(v1)
-
-
-/*    val sum = t1.byteValue + t2.byteValue - {
-      if (testFlag(F, FLAG_C)) 1 else 0
-    }
-    val cbits = t1.byteValue ^ t2.byteValue ^ sum
-    AF(addTable(sum & 0x1ff ) | cbitsTable(cbits & 0x1ff ) | SET_PV(UInt(cbits))) */
-
-  }
+ }
 
   private final def setOverflowFlagAdd16(left:Int, right:Int, carry:Int) : Unit = {
     var left1 = left
@@ -4231,11 +4069,12 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def fn0xed0xa1(x: Int): Unit = {
     addTStates(16)
     CHECK_LOG_BYTE(HL)
+
     val acu: Int = A.get8().byteValue
-    val temp: UInt = HL.get16
+    val temp: Int = MMU.get8(HL.get16)
     HL.increment()
-    val sum = acu - temp
-    val cbits = acu ^ temp ^ sum
+    val sum:Int  = acu - temp
+    val cbits:Int  = acu ^ temp ^ sum
     AF((AF & ~0xfe) | (sum & 0x80) | {
       if (((sum & 0xff) << 6) == 0) 1 else 0
     } |
@@ -4245,6 +4084,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       if ((BC & 0xffff) != 0) 1 else 0
     } << 2 | 2)
     if ((sum & 15) == 8 && (cbits & 16) != 0) AF(AF & ~8)
+
   }
 
   // INI
@@ -4384,31 +4224,29 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // CPIR
   private final def fn0xed0xb1(x: Int): Unit = {
     addTStates(-5)
-    val acu: UByte = A.get8()
-    var temp: UInt = UInt(0)
-    var sum: UInt = UInt(0)
-    var op: Int = 0
+    val acu: Int = A.get8().intValue()
+    var temp: Int = -1
+    var sum: Int = -1
+    var op: Int = -1
 
     if (BC.get16 == 0) BC(0x10000)
     while (op != 0 && sum != 0) {
       addTStates(21)
       INCR(1)
       CHECK_LOG_BYTE(HL)
-      temp = MMU.get8(HL)
+      temp = MMU.get8(HL.get16)
       HL.increment()
       BC.decrement()
-      op = {
-        if (BC.get16 != 0) 1 else 0
-      }
+      op = if (BC.get16 != 0) 1 else 0
       sum = acu - temp
 
     }
-    val cbits: UInt = acu ^ temp ^ sum
+    val cbits: Int = acu ^ temp ^ sum
 
     val nc = {
       if ((sum & 0xff) == 0) UInt(1) else UInt(0)
     }
-    AF((AF & ~0xfe) | (sum & 0x80) | (nc << 6) |
+    AF((AF & ~0xfe) | (sum & 0x80) | ((nc << 6)) |
       (((sum - ((cbits & 16) >> 4)) & 2) << 4) |
       (cbits & 16) | ((sum - ((cbits >> 4) & 1)) & 8) |
       op << 2 | 2)
@@ -4573,7 +4411,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     0x60 -> fn0xfd0x60, 0x61 -> fn0xfd0x61, 0x62 -> fn0xfd0x62, 0x63 -> fn0xfd0x63, 0x64 -> fn0xfd0x64, 0x65 -> fn0xfd0x65,
     0x66 -> fn0xfd0x66, 0x67 -> fn0xfd0x67, 0x68 -> fn0xfd0x68, 0x69 -> fn0xfd0x69, 0x6a -> fn0xfd0x6a, 0x6b -> fn0xfd0x6b,
     0x6c -> fn0xfd0x6c, 0x6e -> fn0xfd0x6e, 0x6f -> fn0xfd0x6f, 0xcb -> fn0xfd0xcb,
-    0xb4 -> fn0xfd0xb4,0xb5 -> fn0xfd0xb5,0xbc -> fn0xfd0xbc,0xbd -> fn0xfd0xbd,0xbe -> fn0xfd0xbe,
+    0xb4 -> fn0xfd0xb4, 0xb5 -> fn0xfd0xb5, 0xb6 -> fn0xfd0xb6, 0xbc -> fn0xfd0xbc,0xbd -> fn0xfd0xbd,0xbe -> fn0xfd0xbe,
     0x70-> fn0xfd0x70,0x71-> fn0xfd0x71,0x72-> fn0xfd0x72,0x73-> fn0xfd0x73,0x74-> fn0xfd0x74,
     0x75-> fn0xfd0x75, 0x77-> fn0xfd0x77, 0x7c-> fn0xfd0x7c,0x7d-> fn0xfd0x7d,0x7e-> fn0xfd0x7e,
     0x84-> fn0xfd0x84,0x85-> fn0xfd0x85,0x86-> fn0xfd0x86,0x8c-> fn0xfd0x8c,0x8d-> fn0xfd0x8d,0x8e-> fn0xfd0x8e,
@@ -5043,9 +4881,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // AND (IY+dd)
   private final def fn0xfd0xa6(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IY.get16.intValue() + MMU.get8PC(PC).byteValue
-    CHECK_LOG_BYTE(adr)
-    AND(MMU.get8(adr))
+    ANDIDXdd(IY)
   }
 
   // XOR IYH
@@ -5063,9 +4899,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   // XOR (IY+dd)
   private final def fn0xfd0xae(x: Int): Unit = {
     addTStates(19)
-    val adr: Int = IY.get16.intValue() + MMU.get8PC(PC).byteValue
-    CHECK_LOG_BYTE(adr)
-    XOR(MMU.get8(adr))
+    XORIDXdd(IY)
   }
 
   // OR IYH
@@ -5078,6 +4912,12 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def fn0xfd0xb5(x: Int): Unit = {
     addTStates(9)
     OR(IYL)
+  }
+
+  // OR (IY+dd)
+  private final def fn0xfd0xb6(x: Int): Unit = {
+    addTStates(19)
+    ORIDXdd(IY)
   }
 
   // CP IYH
@@ -5146,9 +4986,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
    */
   private def ddcbprefix(op: Int, adr: Int): Unit = {
 
-    var acu: UByte = UByte(0)
-    var temp: UByte = UByte(0)
-    var cbits: UInt = UInt(0)
+    var acu: Int = 0
+    var temp: Int = 0
+    var cbits: Int = 0
 
     op & 7 match {
       case 0 =>
@@ -5190,67 +5030,66 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     op & 0xc0 match {
       case 0x00 =>
         // Shift/rotate
-        // #4438
         addTStates(23)
         op & 0x38 match {
           case 0x00 => // RLC
-            temp = UByte(((acu << 1) | (acu >> 7)).byteValue())
-            cbits = UInt(temp & 1)
+            temp = ((acu << 1) | (acu >> 7))
+            cbits = (temp & 1)
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x08 => // RRC
-            temp = UByte(((acu >> 1) | (acu << 7)).byteValue())
-            cbits = UInt(temp & 0x80)
+            temp = ((acu >> 1) | (acu << 7))
+            cbits = temp & 0x80
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x10 => // RL
-            temp = UByte(((acu << 1) | {
-              if (testFlag(F, FLAG_C)) UInt(1) else UInt(0)
-            }).byteValue())
-            cbits = UInt(acu & 0x80)
+            temp = ((acu << 1) | {
+              if (testFlag(F, FLAG_C)) 1 else 0
+            })
+            cbits = (acu & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x18 => // RR
-            temp = UByte(((acu >> 1) | ({
-              if (testFlag(F, FLAG_C)) UInt(1) else UInt(0)
-            } << 7)).byteValue())
-            cbits = UInt(acu & 1)
+            temp = ((acu >> 1) | ({
+              if (testFlag(F, FLAG_C)) 1 else 0
+            } << 7))
+            cbits = acu & 1
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x20 => // SLA
-            temp = UByte((acu << 1).byteValue())
-            cbits = UInt(acu & 0x80)
+            temp = (acu << 1)
+            cbits = (acu & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x28 => // SRA
-            temp = UByte(((acu >> 1) | (acu & 0x80)).byteValue())
-            cbits = UInt(acu & 1)
+            temp = ((acu >> 1) | (acu & 0x80))
+            cbits = acu & 1
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x30 => // SLIA
-            temp = UByte(((acu << 1) | 1).byteValue)
-            cbits = UInt(acu & 0x80)
+            temp = ((acu << 1) | 1)
+            cbits = (acu & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x38 => // SRL
-            temp = UByte((acu >> 1).byteValue())
-            cbits = UInt(acu & 1)
+            temp = (acu >> 1)
+            cbits = (acu & 1)
             AF((AF & ~0xff) | rotateShiftTable(temp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case _ =>
@@ -5260,7 +5099,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       case 0x40 => // BIT
         addTStates(20)
         if ((acu & (1 << ((op >> 3) & 7))) != 0) AF((AF & ~0xfe) | 0x10 | ({
-          if ((op & 0x38) == 0x38) UInt(1) else UInt(0)
+          if ((op & 0x38) == 0x38) 1 else 0
         } << 7))
         else AF((AF & ~0xfe) | 0x54)
         if ((op & 7) != 6) AF(AF | (acu & 0x28))
@@ -5268,11 +5107,11 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
       case 0x80 => // RES
         addTStates(23)
-        temp = UByte((acu & ~(1 << ((op >> 3) & 7))).byteValue())
+        temp = acu & ~(1 << ((op >> 3) & 7))
 
       case 0xc0 => // SET
         addTStates(23)
-        temp = UByte((acu | (1 << ((op >> 3) & 7))).byteValue())
+        temp = (acu | (1 << ((op >> 3) & 7)))
 
       case _ =>
     }
@@ -5296,7 +5135,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
         L(temp)
 
       case 6 =>
-        MMU.put8(adr, temp)
+        MMU.put8(adr, UByte(temp.byteValue()))
 
       case 7 =>
         A(temp)
@@ -5311,9 +5150,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
    */
   private def fdcbprefix(op: Int, adr: Int): Unit = {
 
-    var acu: UByte = UByte(0)
-    var cbits: UInt = UInt(0)
-    var tmp: UInt = UInt(0)
+    var acu: Int = 0
+    var cbits: Int = 0
+    var tmp: Int = 0
 
     op & 7 match {
       case 0 =>
@@ -5348,63 +5187,63 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
       case 0x00 => // shift/rotate
         op & 0x38 match {
           case 0x00 => // RLC
-            tmp = UInt((acu.intValue << 1) | (acu.intValue >> 7))
-            cbits = UInt(tmp & 1)
+            tmp = ((acu << 1) | (acu >> 7))
+            cbits = (tmp & 1)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x08 => // RRC
             tmp = (acu >> 1) | (acu << 7)
-            cbits = UInt(tmp & 0x80)
+            cbits = (tmp & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) (0) else (1)
             })
 
           case 0x10 => // RL
             tmp = (acu << 1) | {
-              if (testFlag(F, FLAG_C)) UInt(1) else UInt(0)
+              if (testFlag(F, FLAG_C)) 1 else 0
             }
             cbits = UInt(acu & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x18 => // RR
             tmp = (acu >> 1) | ({
-              if (testFlag(F, FLAG_C)) UInt(1) else UInt(0)
+              if (testFlag(F, FLAG_C)) 1 else 0
             } << 7)
             cbits = UInt(acu & 1)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x20 => // SLA
             tmp = acu << 1
             cbits = UInt(acu & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x28 => // SRA
-            tmp = UInt((acu >> 1) | (acu & 0x80))
-            cbits = UInt(acu & 1)
+            tmp = ((acu >> 1) | (acu & 0x80))
+            cbits = (acu & 1)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x30 => // SLIA
-            tmp = (acu << 1) | UInt(1)
-            cbits = UInt(acu & 0x80)
+            tmp = (acu << 1) | 1
+            cbits = (acu & 0x80)
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case 0x38 => // SRL
             tmp = acu >> 1
-            cbits = UInt(acu & 1)
+            cbits = acu & 1
             AF((AF & ~0xff) | rotateShiftTable(tmp & 0xff) | {
-              if (cbits == 0) UInt(0) else UInt(1)
+              if (cbits == 0) 0 else 1
             })
 
           case _ =>
@@ -5414,10 +5253,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
         addTStates(20)
         if ( {
           if ((acu & (1 << ((op >> 3) & 7))) != 0)
-            true
-          else false
-        }
-        )
+            true else false
+        })
           AF((AF & ~0xfe) | 0x10 | ({
             if ((op & 0x38) == 0x380) 1 else 0
           } << 7))
@@ -5427,11 +5264,11 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
       case 0x80 => // RES
         addTStates(23)
-        tmp = UInt(acu & ~(1 << ((op >> 3) & 7)))
+        tmp = (acu & ~(1 << ((op >> 3) & 7)))
 
       case 0xc0 => // SET
         addTStates(23)
-        tmp = UInt(acu | (1 << ((op >> 3) & 7)))
+        tmp = (acu | (1 << ((op >> 3) & 7)))
 
       case _ =>
     }

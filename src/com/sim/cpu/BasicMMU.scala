@@ -1,10 +1,11 @@
 package com.sim.cpu
 
-import com.sim.Utils
+import com.sim.{Console, Utils}
 import com.sim.device.{MemoryMappedDevice, PortMappedDevice}
 import com.sim.memory.{AddressSpace, MemoryAddressSpace, ROMAddressSpace}
-import com.sim.unsigned._
+import com.sim.unsigned.*
 import com.sim.unsigned.uint2int
+
 import scala.language.implicitConversions
 
 /**
@@ -39,7 +40,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   for (x <- iotab.indices) iotab(x) = None
 
   private var bankSelect: Int = 0
-
+  val debug = false
 
   def mapRAM(baseAddress: UInt, size: UInt): Unit = {
 
@@ -50,7 +51,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
       val as = new MemoryAddressSpace(UInt(addr), UInt(addr) + PAGESIZE - UInt(1))
       val entry = MMU_ENTRY(memory = Some(as))
       mtab(page) = Some(entry)
-      //Utils.outln(f"MMU: Mapped RAM memory space.  Page: 0x$page%04X, Addr: 0x$addr%04X - 0x${as.highAddress.intValue}%04X")
+      if(debug) Utils.outln(f"MMU: Mapped RAM memory space.  Page: 0x$page%04X, Addr: 0x$addr%04X - 0x${as.highAddress.intValue}%04X")
     }
 
   }
@@ -79,7 +80,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
       val entry = MMU_ENTRY(None, memory = Some(as))
       mtab(page) = Some(entry)
-      Utils.outln(f"MMU: Mapped ROM memory space.  Page: 0x$page%04X, Addr: 0x$addr%04X - 0x${as.highAddress.intValue}%04X")
+      if(debug) Utils.outln(f"MMU: Mapped ROM memory space.  Page: 0x$page%04X, Addr: 0x$addr%04X - 0x${as.highAddress.intValue}%04X")
     }
 
   }
@@ -93,10 +94,10 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
     u.ports.foreach(i => {
       if (iotab(i & 0xff).isDefined) {
-        Utils.outln(f"MMU: IO Port: 0x${i & 0xff}%02X already mapped to Unit: ${iotab(i & 0xff).get.getName}")
+        if(debug) Utils.outln(f"MMU: IO Port: 0x${i & 0xff}%02X already mapped to Unit: ${iotab(i & 0xff).get.getName}")
       } else {
         iotab(i & 0xff) = Some(u)
-        Utils.outln(f"MMU: Mapping IO Port: 0x${i & 0xff}%02X Device: ${u.getName}")
+        if(debug) Utils.outln(f"MMU: Mapping IO Port: 0x${i & 0xff}%02X Device: ${u.getName}")
       }
     })
   }
@@ -105,10 +106,10 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
     u.ports.foreach(i => {
       if (iotab(i & 0xff).isDefined) {
-        Utils.outln(f"MMU: Unmapping IO Port: 0x${i & 0xff}%02X Device: ${u.getName}")
+        if(debug) Utils.outln(f"MMU: Unmapping IO Port: 0x${i & 0xff}%02X Device: ${u.getName}")
         iotab(i & 0xff) = None
       } else {
-        Utils.outln(f"MMU: IO Port: 0x${i & 0xff}%02X is not mapped.")
+        if(debug) Utils.outln(f"MMU: IO Port: 0x${i & 0xff}%02X is not mapped.")
       }
     })
   }
@@ -162,7 +163,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   }
 
   def put8(address: Int, value: UByte): Unit = {
-
+    require(address >= 0)
     var addr: Int = UInt(address) & ADDRMASK
     var pageaddr = addr
     if(cpu.isBanked && (addr < COMMON)) {
@@ -191,7 +192,10 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   def out8(address: Int, value: UByte): Unit = {
     //if(address < 0x08 || address > 0x12) Utils.outln(s"MMU: Write to port: 0x${address.toHexString}, value: 0x${value.toInt.toHexString}")
     iotab(address & 0xff) match {
-      case None => Utils.outln(s"MMU: Write to unconnected port.  Port:0x${address.toHexString}  Value: 0x${value.toHexString}")
+      case None => {
+        if(debug) Utils.outln( s"MMU: Write to unconnected port.  Port:0x${address.toHexString}  Value: 0x${value.toHexString}")
+        //Console.userInterrupt = true
+      }
       case Some(pmu:PortMappedDevice) => pmu.action(UInt(address), value, isWrite = true)
     }
 
@@ -208,7 +212,8 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   def in8(address: Int): UByte = {
     iotab(address & 0xff) match {
       case None =>
-        Utils.outln(s"MMU: Read from unconnected port.  Port:0x${address.toHexString}")
+        if(debug) Utils.outln(s"MMU: Read from unconnected port.  Port:0x${address.toHexString}")
+        //Console.userInterrupt = true
         UByte(0)
       case Some(pmu) =>
         val rv = pmu.action(UInt(address), UByte(0), isWrite = false)
@@ -239,6 +244,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   @inline
   def get8(address: Int): UByte = {
+    require(address >= 0)
     var addr: Int = UInt(address) & ADDRMASK
     var pageaddr = addr
     if(cpu.isBanked && (addr < COMMON)) {
