@@ -18,8 +18,8 @@ class BreakCommand extends Command {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
       case Some(m: AbstractMachine) =>
         try {
-          val addr = Integer.decode(tokenArray(0))
-          m.addBreak(UInt(addr))
+          //val addr = Integer.decode(tokenArray(0))
+          m.addBreak(Integer.decode(tokenArray(0)))
         }catch {
           case nfe:NumberFormatException =>
             sb.append("SIM: Illegal address.")
@@ -44,8 +44,8 @@ class UnBreakCommand extends Command {
         if(tokenArray(0) == "ALL") m.clearBreaks()
         else
           try {
-            val addr = Integer.decode(tokenArray(0))
-            m.removeBreak(UInt(addr))
+            //val addr = Integer.decode(tokenArray(0))
+            m.removeBreak(Integer.decode(tokenArray(0)))
           }catch {
             case nfe:NumberFormatException =>
               sb.append("SIM: Illegal address.")

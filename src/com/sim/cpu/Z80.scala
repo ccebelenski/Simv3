@@ -129,14 +129,14 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   }
 
   // Z80 Flags
-  val FLAG_C = 1
-  val FLAG_N = 2
-  val FLAG_P = 4
-  val FLAG_H = 16
-  val FLAG_Z = 64
-  val FLAG_S = 128
-  val FLAG_3 = 0x0008
-  val FLAG_5 = 0x0020
+  final val FLAG_C = 1
+  final val FLAG_N = 2
+  final val FLAG_P = 4
+  final val FLAG_H = 16
+  final val FLAG_Z = 64
+  final val FLAG_S = 128
+  final val FLAG_3 = 0x0008
+  final val FLAG_5 = 0x0020
 
   override def showFlags(): String = {
     val carry = if ((F & FLAG_C) != 0) true else false
@@ -2167,24 +2167,20 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
   }
 
-  @inline
-  private final def addTStates(x: Long): Unit = {
+  private inline final def addTStates(x: Long): Unit = {
     tStates = tStates + x
   }
 
-  @inline
-  private final def INCR(count: Int): Unit = {
+  private inline def INCR(count: Int): Unit = {
     R.set8(UByte(((R.get8() & ~0x7f) | ((R.get8() + count) & 0x7f)).toByte)) // Increment R
   }
 
 
-  @inline
-  private final def HIGH_DIGIT(x: UByte): Int = {
+  private inline final def HIGH_DIGIT(x: UByte): Int = {
     (x.intValue >> 4) & 0xf
   }
 
-  @inline
-  private final def LOW_DIGIT(x: UByte): Int = {
+  private inline final def LOW_DIGIT(x: UByte): Int = {
     x.intValue & 0xf
   }
 
@@ -2220,8 +2216,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     ppp = ppp * 2
   }
 
-  @inline
-  private final def PARITY(value: Int): UByte = parityTable(value & 0xff)
+  private inline final def PARITY(value: Int): UByte = parityTable(value & 0xff)
 
   private final val rotateShiftTable: Array[UByte] = {
     for (sum <- 0 to 255) yield {
@@ -2237,70 +2232,32 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     }
   }.toArray
 
-  // Used in DAA
-  private final val parity: Array[Boolean] = {
-    for (i <- 0 to 255) yield {
-      var bp = true
-      for (j <- 0 to 7) {
-        if ((i & (1 << j)) != 0) bp = !bp
-      }
-      bp
-    }
-
-  }.toArray
-
-  @inline
-  private final def SET_PV2(x: UByte, temp: Register8): UByte = {
-    UByte(({
-      if (temp.get8() == x) 1 else 0
-    } << 2).toByte)
-  }
-
-  @inline
-  private final def SET_PV2(x: Int, temp: Register8): UByte = SET_PV2(x, temp.get8())
-
-  @inline
-  private final def SET_PV2(x: Int, temp: Int): UByte = {
-    UByte(({
-      if (temp == x) 1 else 0
-    } << 2).toByte)
-  }
-
-  @inline
-  private final def SET_PV(cbits: UInt): Int = ((cbits >> 6) ^ (cbits >> 5)) & 4
-
-  @inline
-  private final def POP(x: Register16): Unit = {
+  private inline final def POP(x: Register16): Unit = {
     val y = MMU.get8(SP)
     SP.increment()
     x(y + (MMU.get8(SP) << 8).shortValue)
     SP.increment()
   }
 
-  @inline
-  private final def PUSH(x: Register16): Unit = {
+  private inline final def PUSH(x: Register16): Unit = {
     PUSH(x.get16)
   }
 
-  @inline
-  private final def PUSH(x: Int): Unit = {
+  private inline final def PUSH(x: Int): Unit = {
     SP.decrement()
     MMU.put8(SP, UByte((x >> 8).byteValue))
     SP.decrement()
     MMU.put8(SP, UByte((x & 0xff).byteValue))
   }
 
-
-  @inline
-  private final def JPC(cond: => Boolean): Unit = {
+  private inline final def JPC(cond: => Boolean): Unit = {
     addTStates(10)
     if (cond) {
       PC(MMU.get16(PC))
     } else PC(PC + 2)
   }
 
-  @inline
-  private final def CALLC(cond: => Boolean): Unit = {
+  private inline final def CALLC(cond: => Boolean): Unit = {
     if (cond) {
       val addr = MMU.get16(PC)
       CHECK_LOG_WORD(SP - 2)
@@ -2316,8 +2273,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   //**** Utility helpers *****
 
   // 16 bit ADD
-  @inline
-  private final def ADD(r1: Register16, r2: Register16): Unit = {
+  private inline final def ADD(r1: Register16, r2: Register16): Unit = {
     val hl:Int = r1.get16.intValue()
     val value:Int = r2.get16.intValue()
     val result:Int = hl + value
@@ -2336,22 +2292,21 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   }
 
-  @inline
-  private final def ADD(r1: Register8, r2: Register8): Unit = {
+  private inline final def ADD(r1: Register8, r2: Register8): Unit = {
     ADD(r1.get8(), r2.get8())
   }
 
-  private final def setHalfCarryFlagAdd(left: Int, right: Int) : Unit = {
+  private inline final def setHalfCarryFlagAdd(left: Int, right: Int) : Unit = {
     val left1 = left & 0x000F
     val right1 = right & 0x000F
     setH((right1 + left1) > 0x0f)
   }
-  private final def setHalfCarryFlagAdd(left: Int, right: Int, carry:Int) : Unit = {
+  private inline final def setHalfCarryFlagAdd(left: Int, right: Int, carry:Int) : Unit = {
     val left1 = left & 0x000F
     val right1 = right & 0x000F
     setH((right1 + left1 + carry) > 0x0f)
   }
-  private final def setOverflowFlagAdd(left:Int, right:Int, carry:Int) : Unit = {
+  private inline final def setOverflowFlagAdd(left:Int, right:Int, carry:Int) : Unit = {
     var left1 :Int = left
     var right1:Int = right
     if(left1 > 127) left1 = left1 - 256
@@ -2360,12 +2315,11 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setPV((left1 < -128) || (left1 > 127))
   }
 
-  private final def setOverflowFlagAdd(left:Int, right:Int) : Unit = {
+  private inline final def setOverflowFlagAdd(left:Int, right:Int) : Unit = {
     setOverflowFlagAdd(left,right,0)
   }
 
-  @inline
-  private final def AND(value: UByte) : Unit = {
+  private inline final def AND(value: UByte) : Unit = {
     val v:Int  = value.intValue()
     var a:Int = A.get8().intValue()
     F(0x10)
@@ -2376,8 +2330,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setPV(PARITY_TABLE(a))
     setUnusedFlags(a)
   }
-  @inline
-  private final def OR(value: UByte) : Unit = {
+
+  private inline final def OR(value: UByte) : Unit = {
     val v:Int  = value.intValue()
     var a:Int = A.get8().intValue()
     F(0)
@@ -2388,8 +2342,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setPV(PARITY_TABLE(a))
     setUnusedFlags(a)
   }
-  @inline
-  private final def XOR(value: UByte) : Unit = {
+
+  private inline final def XOR(value: UByte) : Unit = {
     val v:Int  = value.intValue()
     var a:Int = A.get8().intValue()
     F(0)
@@ -2403,10 +2357,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
 
   // 8 bit ADD
-  @inline
-  private final def ADD(t1: UByte, t2: UByte) : Unit = {
+  private inline final def ADD(t1: UByte, t2: UByte) : Unit = {
     var v1:Int = t1.intValue()
-    var v2:Int = t2.intValue()
+    val v2:Int = t2.intValue()
     setHalfCarryFlagAdd(v1,v2)
     setOverflowFlagAdd(v1,v2)
     v1 = v1 + v2
@@ -2417,26 +2370,22 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setFlag(F,FLAG_N,true)
     A(v1)
     setUnusedFlags(v1)
-
   }
 
-  @inline
-  private final def ADD(r1: Register8, temp: UByte) : Unit = {
+  private inline final def ADD(r1: Register8, temp: UByte) : Unit = {
     ADD(r1.get8(), temp)
   }
 
-  @inline
-  private final def ADC(r1: Register8, r2: Register8): Unit = {
+  private inline final def ADC(r1: Register8, r2: Register8): Unit = {
     ADC(r1.get8(), r2.get8())
   }
 
-  @inline
-  private final def ADC(r1: Register8, temp: UByte): Unit = {
+  private inline final def ADC(r1: Register8, temp: UByte): Unit = {
     ADC(r1.get8(), temp)
 
   }
 // 8 bit ADC
-  @inline private final def ADC(t1: UByte, t2: UByte) : Unit = {
+  private inline final def ADC(t1: UByte, t2: UByte) : Unit = {
     var v1:Int  = t1.intValue()
     val v2:Int  = t2.intValue()
     val carry:Int  = if(testFlag(F, FLAG_C)) 1 else 0
@@ -2452,7 +2401,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setUnusedFlags(v1)
  }
 
-  private final def setOverflowFlagAdd16(left:Int, right:Int, carry:Int) : Unit = {
+  private inline final def setOverflowFlagAdd16(left:Int, right:Int, carry:Int) : Unit = {
     var left1 = left
     var right1 = right
     if(left1 > 32767) left1 = left1 - 65536
@@ -2460,7 +2409,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     left1 = left1 + right1 + carry
     setPV((left1 < -32768) || (left1 > 32767))
   }
-  private final def setOverflowFlagSub16(left:Int, right:Int, carry:Int) : Unit = {
+  private inline final def setOverflowFlagSub16(left:Int, right:Int, carry:Int) : Unit = {
     var left1 = left
     var right1 = right
     if(left1 > 32767) left1 = left1 - 65536
@@ -2470,72 +2419,34 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   }
 
 // 16 bit ADC
-  @inline
-  private final def ADC( r2: Register16): Unit = {
-    var a:Int = HL.get16.intValue()
-    var b:Int = r2.get16.intValue()
-    val c:Int = if(testFlag(F, FLAG_C)) 1 else 0
-    val lans:Int = a + b + c
+  private inline final def ADC( r2: Register16): Unit = {
+    var a: Int = HL.get16.intValue()
+    var b: Int = r2.get16.intValue()
+    val c: Int = if (testFlag(F, FLAG_C)) 1 else 0
+    val lans: Int = a + b + c
     val ans = lans & 0xffff
     setS((ans & (FLAG_S << 8)) != 0)
     set3(((ans & (FLAG_3 << 8)) != 0))
     set5((ans & (FLAG_5 << 8)) != 0)
     setZ(ans == 0)
     setC(lans > 0xFFFF)
-    setOverflowFlagAdd16(a,b,c)
+    setOverflowFlagAdd16(a, b, c)
     if ((((a & 0x0FFF) + (b & 0x0FFF) + c) & 0x1000) != 0) setH(true)
     else setH(false)
-    setFlag(F,FLAG_N,true)
+    setFlag(F, FLAG_N, true)
     HL(ans)
-/*    val sum: UInt = r1.get16.toUInt + r2.get16.toUInt + {
-      if (testFlag(F, FLAG_C)) UInt(1) else UInt(0)
-    }
-    if (r1.nmenomic != r2.nmenomic)
-      AF((AF & ~0xff) | ((sum >> 8) & 0xa8) | ({
-        if ((sum & 0xffff) == 0) UInt(1) else UInt(0)
-      } << 6) | cbitsZ80Table(((r1.get16.toUInt ^ r2.get16.toUInt ^ sum) >> 8) ))
-    else
-      AF((AF & ~0xff) | ({
-        if ((sum & 0xffff) == 0) 1 else 0
-      } << 6) | cbitsZ80DupTable((sum >> 8) ))
-
-    r1(sum & 0xffff)*/
   }
-/*
-  @inline
-  private final def ADCIDX(r1: Register8, r2: Register8): Unit = {
-    ADCIDX(r1.get8(), r2.get8())
-  }
-*/
-/*
-  @inline
-  private final def ADCIDX(r1: Register8,temp: UByte): Unit = {
-    ADCIDX(r1.get8(), temp)
-  }
-*/
-/*
-  @inline
-  private final def ADCIDX(t1: UByte, t2: UByte) : Unit = {
-    val sum = t1.byteValue + t2.byteValue + {
-      if (testFlag(F, FLAG_C)) 1 else 0
-    }
-    val cbits = t1.byteValue ^ t2.byteValue ^ sum
-    AF(addTable(sum & 0x1ff) | cbitsZ80Table(cbits & 0x1ff) & 0xffff)
-  }
-*/
-  @inline
-  private final def setHalfCarryFlagSub(left:Int, right:Int) : Unit = {
+  private inline final def setHalfCarryFlagSub(left:Int, right:Int) : Unit = {
     val left1:Int  = left & 0x000f
     val right1:Int  = right & 0x000f
     setH(left1 < right1)
   }
-  @inline
-  private final def setHalfCarryFlagSub(left:Int, right : Int, carry:Int) : Unit = {
+  private inline final def setHalfCarryFlagSub(left:Int, right : Int, carry:Int) : Unit = {
     val left1:Int  = left & 0x000f
     val right1:Int  = right & 0x000f
     setH(left1 < (right1 + carry))
   }
-  private final def setOverflowFlagSub(left:Int, right:Int, carry:Int) : Unit = {
+  private inline final def setOverflowFlagSub(left:Int, right:Int, carry:Int) : Unit = {
    var left1:Int  = left
    var right1:Int  = right
    if(left > 127) left1 = left1 - 256
@@ -2543,18 +2454,18 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
    left1 = left1 - right1 - carry
    setPV((left1 < -128) || (left1 > 127))
  }
-  private final def setOverflowFlagSub(left:Int, right:Int) : Unit = {
+  private inline final def setOverflowFlagSub(left:Int, right:Int) : Unit = {
    setOverflowFlagSub(left,right,0)
  }
-  private final def setPV(b:Boolean) : Unit = {
+  private inline final def setPV(b:Boolean) : Unit = {
     if(b) setFlag(FLAG_P, false)
     else setFlag(FLAG_P,true)
   }
-  private final def setH(b:Boolean) : Unit = {
+  private inline final def setH(b:Boolean) : Unit = {
    if(b) setFlag(FLAG_H,false)
    else setFlag(FLAG_H,true)
  }
-  private final def setS(b:Boolean):Unit = {
+  private inline final def setS(b:Boolean):Unit = {
   if(b) setFlag(FLAG_S,false)
   else setFlag(FLAG_S,true)
 }
@@ -2562,22 +2473,21 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   if(b) setFlag(FLAG_C,false)
   else setFlag(FLAG_C,true)
 }
-  private final def setZ(b:Boolean) : Unit = {
+  private inline final def setZ(b:Boolean) : Unit = {
   if(b) setFlag(FLAG_Z,false)
   else setFlag(FLAG_Z,true)
 }
-  private final def setN():Unit = {
+  private inline final def setN():Unit = {
   setFlag(FLAG_N,false)
 
 }
-  private final def setUnusedFlags(value:Int):Unit = {
+  private inline final def setUnusedFlags(value:Int):Unit = {
   val v:Int  = value & 0x28
   F(F.intValue() & 0xd7)
   F(F.intValue() | v)
 }
 // 8 bit SUB
-  @inline
-  private final def SUB(temp: UByte): Unit = {
+  private inline final def SUB(temp: UByte): Unit = {
     var local_reg_A:Int  = A.get8().intValue()
     val value:Int = temp.intValue()
     setHalfCarryFlagSub(local_reg_A, value)
@@ -2594,24 +2504,20 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   }
 
-  @inline
-  private final def SUB(r1: Register8): Unit = {
+  private inline final def SUB(r1: Register8): Unit = {
     SUB(r1.get8())
   }
 
-  @inline
-  private final def SBC(r1: Register8, r2: Register8): Unit = {
+  private inline final def SBC(r1: Register8, r2: Register8): Unit = {
     SBC(r1.get8(), r2.get8())
   }
 
-  @inline
-  private final def SBC(r1: Register8, temp: UByte): Unit = {
+  private inline final def SBC(r1: Register8, temp: UByte): Unit = {
     SBC(r1.get8(), temp)
   }
 
   // 8 bit SBC
-  @inline
-  private final def SBC(t1: UByte, t2:UByte) : Unit = {
+  private inline final def SBC(t1: UByte, t2:UByte) : Unit = {
     var v1:Int  = t1.intValue()
     val v2:Int  = t2.intValue()
     val carry:Int  = if(testFlag(F,FLAG_C)) 1 else 0
@@ -2629,8 +2535,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   }
 
   // 16 bit SBC
-  @inline
-  private final def SBC(r1: Register16, r2: Register16): Unit = {
+   private inline final def SBC(r1: Register16, r2: Register16): Unit = {
     val a: Int = r1.get16.intValue()
     val b: Int = r2.get16.intValue()
     val c: Int = if (testFlag(F, FLAG_C)) 1 else 0
@@ -2647,29 +2552,27 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     r1(ans)
   }
 
-  @inline
-  private final def ICP(r1: Register8): Unit = {
+  private inline final def ICP(r1: Register8): Unit = {
     ICP(r1.get8())
   }
 
-  private final def set3(b:Boolean) : Unit = {
+  private inline final def set3(b:Boolean) : Unit = {
     if(b) setFlag(F,FLAG_3,false)
     else setFlag(F,FLAG_3,true)
   }
-  private final def set3(): Unit = {
+  private inline final def set3(): Unit = {
     set3(true)
   }
 
-  private final def set5(b:Boolean) : Unit = {
+  private inline final def set5(b:Boolean) : Unit = {
     if(b) setFlag(F,FLAG_5,false)
     else setFlag(F,FLAG_5,true)
   }
-  private final def set5(): Unit = {
+  private inline final def set5(): Unit = {
     set5(true)
   }
   // 8 bit CP
-  @inline
-  private final def ICP(temp: UByte): Unit = {
+  private inline final def ICP(temp: UByte): Unit = {
     val a:Int  = A.get8().intValue()
     val b:Int  = temp.intValue()
     val wans:Int  = a - b
@@ -2683,32 +2586,23 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     setH((((a & 0x0f) - (b & 0x0f)) & FLAG_H) != 0)
     setPV(((a ^ b) & (a ^ ans) & 0x80) != 0)
 
-/*
-    AF((AF & ~0x28) | (temp & 0x28))
-    val acu = A.get8().byteValue
-    val sum = acu - temp.byteValue
-    val cbits = acu ^ temp ^ sum
-    AF((AF & ~0xff) | cpTable(sum & 0xff) | SET_PV(UInt(cbits)) | (temp & 0x28) | cbits2Table(cbits & 0x1ff))
-*/
   }
 
-  @inline
-  private final def LDIDXdd(r1: Register8, ridx: Register16): Unit = {
+  private inline final def LDIDXdd(r1: Register8, ridx: Register16): Unit = {
     val adr: Int = ridx.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     r1(MMU.get8(adr))
   }
 
-  @inline
-  private final def LDIDXdd(ridx: Register16, r1: Register8): Unit = {
+
+  private inline final def LDIDXdd(ridx: Register16, r1: Register8): Unit = {
     val adr = ridx.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     MMU.put8(adr, r1)
   }
 
   // 8 bit increment
-  @inline
-  private final def INC(r1: Register8): Unit = {
+  private inline final def INC(r1: Register8): Unit = {
     var value:Int = r1.get8().intValue()
     setHalfCarryFlagAdd(value, 1)
     setPV(value == 0x7F)
@@ -2723,8 +2617,8 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     //AF((AF & ~0xfe) | incTable(r1) | SET_PV2(0x80, r1))
   }
 
-  @inline
-  private final def DEC(r1: Register8): Unit = {
+
+  private inline final def DEC(r1: Register8): Unit = {
     var value:Int = r1.get8().intValue()
     setHalfCarryFlagSub(value, 1)
     setPV(value == 0x80)
@@ -2737,18 +2631,17 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     r1(value)
   }
 
-  private final def INC(r1: Register16) : Unit = {
+  private inline final def INC(r1: Register16) : Unit = {
     val value:Int = r1.intValue()
     r1(value + 1)
   }
 
-  private final def DEC(r1: Register16) : Unit = {
+  private inline final def DEC(r1: Register16) : Unit = {
     val value:Int = r1.intValue()
     r1(value - 1)
   }
 
-  @inline
-  private final def INCIDXdd(r1: Register16): Unit = {
+  private inline final def INCIDXdd(r1: Register16): Unit = {
     val adr: Int = r1.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     var value:Int = MMU.get8(adr).intValue()
@@ -2763,8 +2656,7 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     MMU.put8(adr, UByte(value.toByte))
   }
 
-  @inline
-  private final def DECIDXdd(r1: Register16): Unit = {
+  private inline final def DECIDXdd(r1: Register16): Unit = {
     val adr: Int = r1.get16 + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     var value:Int = MMU.get8(adr).intValue()
@@ -2779,36 +2671,34 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     MMU.put8(adr, UByte(value.toByte))
   }
 
-  @inline
-  private final def ANDIDXdd(r1: Register16): Unit = {
+
+  private inline final def ANDIDXdd(r1: Register16): Unit = {
     val adr: Int = r1.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     AND(MMU.get8(adr))
   }
 
-  @inline
-  private final def ORIDXdd(r1: Register16): Unit = {
+  private inline final def ORIDXdd(r1: Register16): Unit = {
     val adr: Int = r1.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     OR(MMU.get8(adr))
   }
 
-  @inline
-  private final def XORIDXdd(r1: Register16): Unit = {
+
+  private inline final def XORIDXdd(r1: Register16): Unit = {
     val adr: Int = r1.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     XOR(MMU.get8(adr))
   }
 
-  @inline
-  private final def CPIDXdd(r1: Register16): Unit = {
+
+  private inline final def CPIDXdd(r1: Register16): Unit = {
     val adr: Int = r1.get16.intValue() + MMU.get8PC(PC).byteValue
     CHECK_LOG_BYTE(adr)
     ICP(MMU.get8(adr))
   }
 
-  @inline
-  private final def NEG(): Unit = {
+  private inline final def NEG(): Unit = {
     addTStates(8)
     var value :Int = A.get8().intValue()
     setHalfCarryFlagSub(0, value, 0)
@@ -2823,16 +2713,14 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   }
 
-  @inline
-  private final def RETN(): Unit = {
+  private inline final def RETN(): Unit = {
     addTStates(14)
     IFF(IFF | (IFF >> 1))
     CHECK_LOG_WORD(SP)
     POP(PC)
   }
 
-  @inline
-  private final def setFlag(flag: Int, clear: Boolean): Unit = {
+  private inline final def setFlag(flag: Int, clear: Boolean): Unit = {
     AF(if (!clear) AF | flag else AF & ~flag)
 
   }
@@ -2854,20 +2742,19 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
         x == L              for OUTI and OUTD
         x == (C - 1) & 0xff for IND
 */
-  @inline
-  private final def INOUTFLAGS_NONZERO(x: Int, acu: Int, temp: Int): Unit = {
+
+  private inline final def INOUTFLAGS_NONZERO(x: Int, acu: Int, temp: Int): Unit = {
     INOUTFLAGS((C.get8() & 0xa8) | ({
       if (C.get8() == 0) 1 else 0
     } << 6), x, acu, temp)
   }
 
-  @inline
-  private final def INOUTFLAGS_ZERO(x: Int, acu: Int, temp: Int): Unit = {
+  private inline final def INOUTFLAGS_ZERO(x: Int, acu: Int, temp: Int): Unit = {
     INOUTFLAGS(FLAG_Z, x, acu, temp)
   }
 
-  @inline
-  private final def INOUTFLAGS(syzx: Int, x: Int, acu: Int, temp: Int): Unit = {
+
+  private inline final def INOUTFLAGS(syzx: Int, x: Int, acu: Int, temp: Int): Unit = {
     AF((AF & 0xff00) | syzx |
       ((acu & 0x80) >> 6) | {
       if ((acu + x) > 0xff) FLAG_C | FLAG_H else 0

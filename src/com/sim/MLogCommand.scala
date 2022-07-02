@@ -18,8 +18,8 @@ class MLogCommand extends Command {
       case None => sb.append("SIM: No machine.  SET a MACHINE.")
       case Some(m: AbstractMachine) =>
         try {
-          val addr = Integer.decode(tokenArray(0))
-          m.addMemLog(UInt(addr))
+          //val addr = Integer.decode(tokenArray(0))
+          m.addMemLog(Integer.decode(tokenArray(0)))
         }catch {
           case nfe:NumberFormatException =>
             sb.append("SIM: Illegal address.")
@@ -44,8 +44,8 @@ class UnMLogCommand extends Command {
         if(tokenArray(0) == "ALL") m.clearMemLog()
         else
           try {
-            val addr = Integer.decode(tokenArray(0))
-            m.remoteMemLog(UInt(addr))
+            //val addr = Integer.decode(tokenArray(0))
+            m.remoteMemLog(Integer.decode(tokenArray(0)))
           }catch {
             case nfe:NumberFormatException =>
               sb.append("SIM: Illegal address.")

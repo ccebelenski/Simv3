@@ -36,8 +36,8 @@ class EM extends Command {
             if (endAddr < startAddr || endAddr == startAddr) sb.append("SIM: Illegal range.")
             else {
               val buf = new ArrayBuffer[UByte]
-              for (x <- startAddr.intValue() to endAddr.intValue()) buf += cpu.MMU.get8(x)
-              HexDump.hexdump(buf.toArray, startAddr.intValue(), sb)
+              for (x <- startAddr.intValue to endAddr.intValue) buf += cpu.MMU.get8(x)
+              HexDump.hexdump(buf.toArray, startAddr.intValue, sb)
             }
 
           }

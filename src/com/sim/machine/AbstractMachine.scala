@@ -89,15 +89,15 @@ abstract class AbstractMachine extends Named {
 
   def getCPU: BasicCPU
 
-  val breakpoints: mutable.HashSet[UInt] = new mutable.HashSet[UInt]()
+  final val breakpoints: mutable.HashSet[Int] = new mutable.HashSet[Int]()
 
-  val memlogs: mutable.HashSet[UInt] = new mutable.HashSet[UInt]()
+  final val memlogs: mutable.HashSet[Int] = new mutable.HashSet[Int]()
 
   /**
    * Add a breakpoint address to the list of breakpoints
    * @param address
    */
-  def addBreak(address:UInt ) : Unit = {
+  def addBreak(address:Int ) : Unit = {
 
     breakpoints += address
   }
@@ -106,7 +106,7 @@ abstract class AbstractMachine extends Named {
    * Remove a breakpoint address from the list of breakpoints
    * @param address
    */
-  def removeBreak(address:UInt) : Unit = {
+  def removeBreak(address:Int) : Unit = {
 
     breakpoints -= address
   }
@@ -125,7 +125,7 @@ abstract class AbstractMachine extends Named {
    * @param address
    * @return true if there is a breakpoint, false otherwise
    */
-  def checkBreak(address:UInt) : Boolean = {
+  inline def checkBreak(address:Int) : Boolean = {
 
     breakpoints(address)
   }
@@ -136,7 +136,7 @@ abstract class AbstractMachine extends Named {
     })
   }
 
-  def addMemLog(address:UInt) : Unit = {
+  def addMemLog(address:Int) : Unit = {
     memlogs += address
   }
 
@@ -144,11 +144,11 @@ abstract class AbstractMachine extends Named {
     memlogs.clear()
   }
 
-  def remoteMemLog(address:UInt) : Unit = {
+  def remoteMemLog(address:Int) : Unit = {
     memlogs -= address
   }
 
-  def checkMemLog(address:UInt) : Boolean = {
+  inline def checkMemLog(address:Int) : Boolean = {
     memlogs(address)
   }
   def showMemLogs(sb:mutable.StringBuilder):Unit = {

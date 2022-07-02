@@ -15,7 +15,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
   with SupportsOptions with Bootable {
 
   // debug control
-  debug = true
+  debug = false
 
   override val description: String = "Hard Disk"
   override val name = "HD"
@@ -431,7 +431,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
     //val cd = unit.get
     //val useAltairROM = getBinaryOption("ALTAIRROM") | machine.getCPU.isBanked
 
-    if (machine.cpu.getMemorySize < UInt(24 * 1024)) {
+    if (machine.cpu.getMemorySize < (24 * 1024)) {
       Utils.outln(s"$getName: Need at least 24KB RAM to boot from HDSK.")
       return false
     }

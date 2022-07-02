@@ -18,37 +18,37 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   // Some constants - allow for overrides later
 
-  val MAXBANKSIZE: UInt = UInt(65536) // Max memory size, power of 2
-  val MAXBANKSIZELOG2: UInt = UInt(Math.log(MAXBANKSIZE.toInt / Math.log(2)).intValue()) // log2 of MAXBANKSIZE
-  val MAXBANKS: UInt = UInt(16) // Max number of memory banks, a power of 2
-  val MAXBANKSLOG2: UInt = UInt(Math.log(MAXBANKS.toInt / Math.log(2)).intValue()) // log2 of MAXBANKS
-  val MAXMEMORY: UInt = MAXBANKS * MAXBANKSIZE // Maximum total memory size
-  val ADDRMASK: UInt = MAXMEMORY - UInt(1) // Address mask
-  val ADDRMASKEXTENDED: UInt = MAXMEMORY - UInt(1)
-  val BANKMASK: UInt = MAXBANKS - UInt(1)
+  val MAXBANKSIZE: Int = 65536 // Max memory size, power of 2
+  final val MAXBANKSIZELOG2: Double = Math.log(MAXBANKSIZE / Math.log(2)) // log2 of MAXBANKSIZE
+  val MAXBANKS: Int = 16 // Max number of memory banks, a power of 2
+  final val MAXBANKSLOG2: Double = Math.log(MAXBANKS / Math.log(2)) // log2 of MAXBANKS
+  final val MAXMEMORY: Int = MAXBANKS * MAXBANKSIZE // Maximum total memory size
+  final val ADDRMASK: Int = MAXMEMORY - 1// Address mask
+  final val ADDRMASKEXTENDED: Int = MAXMEMORY - 1
+  final val BANKMASK: Int = MAXBANKS - 1
 
-  val LOG2PAGESIZE: UInt = UInt(8)
-  val PAGESIZE: UInt = UInt(1) << LOG2PAGESIZE
+  val LOG2PAGESIZE: Int = 8
+  final val PAGESIZE: Int = 1 << LOG2PAGESIZE
 
   val COMMON = 0xc000 // Addreses greater than common are in the same memory.
 
-  val mtab: Array[Option[MMU_ENTRY]] = new Array[Option[MMU_ENTRY]](1 + (MAXMEMORY >> LOG2PAGESIZE))
+  final val mtab: Array[Option[MMU_ENTRY]] = new Array[Option[MMU_ENTRY]](1 + (MAXMEMORY >> LOG2PAGESIZE))
   for (x <- mtab.indices) mtab(x) = None
 
   // 256 Ports
-  val iotab: Array[Option[PortMappedDevice]] = new Array[Option[PortMappedDevice]](256)
+  final val iotab: Array[Option[PortMappedDevice]] = new Array[Option[PortMappedDevice]](256)
   for (x <- iotab.indices) iotab(x) = None
 
   private var bankSelect: Int = 0
   val debug = false
 
-  def mapRAM(baseAddress: UInt, size: UInt): Unit = {
+  def mapRAM(baseAddress: Int, size: Int): Unit = {
 
     for (i <- 0 to (size >> LOG2PAGESIZE)) {
-      val addr = (baseAddress & 0xfff00) + (i << LOG2PAGESIZE.toInt)
+      val addr = (baseAddress & 0xfff00) + (i << LOG2PAGESIZE)
       val pageaddr = if (cpu.isBanked && addr < COMMON) addr | (bankSelect << MAXBANKSIZELOG2.toInt) else addr
       val page = pageaddr >> LOG2PAGESIZE.toInt
-      val as = new MemoryAddressSpace(UInt(addr), UInt(addr) + PAGESIZE - UInt(1))
+      val as = new MemoryAddressSpace(addr, addr + PAGESIZE - 1)
       val entry = MMU_ENTRY(memory = Some(as))
       mtab(page) = Some(entry)
       if(debug) Utils.outln(f"MMU: Mapped RAM memory space.  Page: 0x$page%04X, Addr: 0x$addr%04X - 0x${as.highAddress.intValue}%04X")
@@ -67,16 +67,16 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   def mapAS(baseAddress: UInt, size: UInt, image: Array[Int], asROM: Boolean): Unit = {
     for (i <- 0 to (size >> LOG2PAGESIZE)) {
-      val addr = (baseAddress & 0xfff00) + (i << LOG2PAGESIZE.toInt)
+      val addr = (baseAddress & 0xfff00) + (i << LOG2PAGESIZE)
       val pageaddr = if (cpu.isBanked && addr < COMMON) addr | (bankSelect << MAXBANKSIZELOG2.toInt) else addr
-      val page = pageaddr >> LOG2PAGESIZE.toInt
+      val page = pageaddr >> LOG2PAGESIZE
       val as: AddressSpace = {
-        if (asROM) new ROMAddressSpace(UInt(addr), UInt(addr) + PAGESIZE - UInt(1))
-        else new MemoryAddressSpace(UInt(addr), UInt(addr) + PAGESIZE - UInt(1))
+        if (asROM) new ROMAddressSpace(addr, addr + PAGESIZE - 1)
+        else new MemoryAddressSpace(addr, addr + PAGESIZE - 1)
       }
-      val imgIdx = i << LOG2PAGESIZE.toInt
-      val imgSize = PAGESIZE - UInt(1)
-      for (x <- imgIdx to imgSize) as.load8(UInt(addr + x), UByte(image(x).byteValue()))
+      val imgIdx = i << LOG2PAGESIZE
+      val imgSize = PAGESIZE - 1
+      for (x <- imgIdx to imgSize) as.load8(addr + x, UByte(image(x).byteValue()))
 
       val entry = MMU_ENTRY(None, memory = Some(as))
       mtab(page) = Some(entry)
@@ -223,27 +223,26 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   }
 
   // Store little endian...
-  def put16(address: Int, value: UShort): Unit = {
+  inline def put16(address: Int, value: UShort): Unit = {
 
     put8(address, UByte((value & 0xFF).toByte))
     put8(address + 1, UByte(((value >> 8) & 0xFF).toByte))
   }
 
 // Get8 with PC increment (for consistency)
-  @inline
-  def get8PC(pc:Register16) : UByte = {
+  inline def get8PC(pc:Register16) : UByte = {
     val nn = get8(pc.get16.intValue())
     pc.increment()
     nn
 }
   
-  @inline
-  def get8(address: Register16): UByte = {
+
+  inline def get8(address: Register16): UByte = {
     get8(address.get16.intValue())
   }
 
-  @inline
-  def get8(address: Int): UByte = {
+
+  inline def get8(address: Int): UByte = {
     require(address >= 0)
     var addr: Int = UInt(address) & ADDRMASK
     var pageaddr = addr
@@ -259,7 +258,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
       case Some(e: MMU_ENTRY) =>
         if (e.memory.isDefined) {
           val as = e.memory.get
-          if (as.containsAddress(UInt(addr))) e.memory.get.get8(UInt(addr))
+          if (as.containsAddress(UInt(addr))) as.get8(addr)
           else {
             val msg = f"MMU: Page table error - Addr: 0x$addr%04X address space: 0x${as.lowAddress.intValue}%04X - 0x${as.highAddress.intValue}%04X"
             Utils.outln(msg)
@@ -277,19 +276,19 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
 
   // Retrieve little endian
-  @inline
-  def get16(address: Int): UShort = {
+
+  inline def get16(address: Int): UShort = {
     UShort((get8(address) | (get8(address + UInt(1)) << 8)).shortValue())
   }
 
-  @inline
-  def get16(register16: Register16): UShort = {
+
+  inline def get16(register16: Register16): UShort = {
     get16(register16.get16)
   }
 
 
-  @inline
-  def get16(address: UShort): UShort = {
+
+  inline def get16(address: UShort): UShort = {
     get16(address.intValue())
   }
 

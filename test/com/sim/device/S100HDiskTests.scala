@@ -26,7 +26,7 @@ class S100HDiskTests {
       machine.init()
       z80 = machine.findDevice("Z80A").get.asInstanceOf[Z80]
       mmu = z80.MMU
-      z80.setMemorySize(UInt(0x500))
+      z80.setMemorySize(0x500)
       //Z80Tests.mmu.mapRAM(UInt(0x0000), UInt(0x500))
       PC = z80.registers("PC").asInstanceOf[Register16]
       sb = new mutable.StringBuilder

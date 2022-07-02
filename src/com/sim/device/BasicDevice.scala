@@ -14,7 +14,7 @@ abstract class BasicDevice(val machine:AbstractMachine) extends Named with Suppo
 
   val description: String
   private val units: ArrayBuffer[BasicUnit] = new ArrayBuffer[BasicUnit]
-  var awidth : UInt = UInt(0)
+  var awidth : Int = 0
   // Device Identifier - first device is usually "A", second "B", etc.
   var deviceIdentifier:String = "A"
   private var enabled : Boolean = false
