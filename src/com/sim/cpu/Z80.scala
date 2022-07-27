@@ -3957,40 +3957,38 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     addTStates(16)
     CHECK_LOG_BYTE(HL)
 
-    val acu: Int = A.get8().byteValue
-    val temp: Int = MMU.get8(HL.get16)
-    HL.increment()
-    val sum:Int  = acu - temp
-    val cbits:Int  = acu ^ temp ^ sum
-    AF((AF & ~0xfe) | (sum & 0x80) | {
-      if (((sum & 0xff) << 6) == 0) 1 else 0
-    } |
-      (((sum - ((cbits & 16) >> 4)) & 2) << 4) | (cbits & 16) |
-      ((sum - ((cbits >> 4) & 1)) & 8) | {
-      BC.decrement()
-      if ((BC & 0xffff) != 0) 1 else 0
-    } << 2 | 2)
-    if ((sum & 15) == 8 && (cbits & 16) != 0) AF(AF & ~8)
+    val value:Int = MMU.get8(HL.get16).intValue()
+    var result:Int = (A.get8().intValue() - value) & 0xff
+    INC(HL)
+    DEC(BC)
+    setS((result & 0x80) != 0)
+    setZ(result == 0)
+    setHalfCarryFlagSub(A,value)
+    setPV(BC.get16.intValue() != 0)
+    setN()
 
+    if(testFlag(F,FLAG_H)) result = result - 1
+    if((result & 0x02) == 0) setFlag(F,FLAG_5,true) else setFlag(F,FLAG_5,false)
+    if((result & 0x08) == 0) setFlag(F,FLAG_3,true) else setFlag(F,FLAG_3,false)
   }
 
   // INI
   private final def fn0xed0xa2(x: Int): Unit = {
     /*  SF, ZF, YF, XF flags are affected by decreasing register B, as in DEC B.
           NF flag A is copy of bit 7 of the value read from or written to an I/O port.
-          INI/INIR/IND/INDR use the C flag in stead of the L register. There is a
+          INI/INIR/IND/INDR use the C flag instead of the L register. There is a
           catch though, because not the value of C is used, but C + 1 if it's INI/INIR or
           C - 1 if it's IND/INDR. So, first of all INI/INIR:
               HF and CF Both set if ((HL) + ((C + 1) & 255) > 255)
               PF The parity of (((HL) + ((C + 1) & 255)) & 7) xor B)                      */
     addTStates(16)
     CHECK_LOG_BYTE(HL)
-    val acu: UInt = MMU.in8(C)
-    MMU.put8(HL, acu.intValue)
+    val acu: Int = MMU.in8(C.get8()).intValue()
+    MMU.put8(HL, acu)
     HL.increment()
-    val temp: UByte = B.get8()
-    BC(BC - 0x100)
-    INOUTFLAGS_NONZERO((C + 1) & 0xff, acu.intValue, temp.intValue())
+    B.decrement()
+    setZ(B.get8().intValue() == 0)
+    setN()
   }
 
   // OUTI
@@ -4005,12 +4003,12 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     PF The parity of ((((HL) + L) & 7) xor B)                                       */
     addTStates(16)
     CHECK_LOG_BYTE(HL)
-    val acu: UInt = MMU.get8(HL)
-    MMU.out8(C, UByte(acu.byteValue()))
+    MMU.out8(C,MMU.get8(HL.intValue()))
+    B.decrement()
     HL.increment()
-    val temp: UByte = B.get8()
-    BC(BC - 0x100)
-    INOUTFLAGS_NONZERO(L.get8(), acu.intValue, temp.intValue())
+    setZ(B.get8().intValue() == 0)
+    setN()
+
   }
 
   // LDD
@@ -4034,22 +4032,21 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
   private final def fn0xed0xa9(x: Int): Unit = {
     addTStates(16)
     CHECK_LOG_BYTE(HL)
-    val acu: UByte = A.get8()
-    val temp: UByte = MMU.get8(HL)
-    HL.decrement()
-    val sum = acu.byteValue - temp.byteValue
-    val cbits = acu.byteValue ^ temp.byteValue ^ sum
-    AF(
-      (AF & ~0xfe) | (sum & 0x80) | ({
-        if ((sum & 0xff) == 0) UInt(1) else UInt(0)
-      } << 6) |
-        (((sum - ((cbits & 16) >> 4)) & 2) << 4) | (cbits & 16) |
-        ((sum - ((cbits >> 4) & 1)) & 8) | {
-        BC.decrement()
-        if ((BC.get16 & 0xffff) != 0) UInt(1) else UInt(0)
-      } << 2 | 2
-    )
-    if ((sum & 15) == 8 && (cbits & 16) != 0) AF(AF & ~8)
+    val value:Int = MMU.get8(HL.get16)
+    var result:Int = (A.get8().intValue() - value) & 0xff
+    DEC(HL)
+    DEC(BC)
+    setS((result & 0X80) != 0)
+    setZ(result == 0)
+    setHalfCarryFlagSub(A, value)
+    setPV(BC.get16 != 0)
+    setN()
+
+    if(testFlag(F, FLAG_H)) result = result - 1
+    if((result & 0x02) == 0) setFlag(F,FLAG_5,true)
+    else setFlag(F,FLAG_5,false)
+    if((result & 0x08) == 0) setFlag(F,FLAG_3,true) else setFlag(F,FLAG_3,false)
+
   }
 
   // IND
@@ -4066,21 +4063,21 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
     val acu: UByte = MMU.in8(C)
     MMU.put8(HL, acu)
     HL.decrement()
-    val temp: Int = B.get8()
-    BC(BC.get16 - 0x100)
-    INOUTFLAGS_NONZERO((C.get8() - 1) & 0xff, acu.intValue(), temp)
+    B.decrement()
+    setZ(B.get8().intValue() == 0)
+    setN()
   }
 
   // OUTD
   private final def fn0xed0xab(x: Int): Unit = {
     addTStates(16)
     CHECK_LOG_BYTE(HL)
-    val acu: UInt = MMU.get8(HL)
-    MMU.out8(C, acu.intValue)
+    val acu: Int = MMU.get8(HL).intValue()
+    MMU.out8(C, acu)
     HL.decrement()
-    val temp: Int = B.get8()
-    BC(BC.get16 - 0x100)
-    INOUTFLAGS_NONZERO(L.get8(), acu.intValue, temp.intValue())
+    B.decrement()
+    setZ(B.get8().intValue() == 0)
+    setN()
   }
 
   // LDIR
@@ -4110,79 +4107,24 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   // CPIR
   private final def fn0xed0xb1(x: Int): Unit = {
-    addTStates(-5)
-    val acu: Int = A.get8().intValue()
-    var temp: Int = -1
-    var sum: Int = -1
-    var op: Int = -1
-
-    if (BC.get16 == 0) BC(0x10000)
-    while (op != 0 && sum != 0) {
-      addTStates(21)
-      INCR(1)
-      CHECK_LOG_BYTE(HL)
-      temp = MMU.get8(HL.get16)
-      HL.increment()
-      BC.decrement()
-      op = if (BC.get16 != 0) 1 else 0
-      sum = acu - temp
-
+    addTStates(21)
+    fn0xed0xa1(x)
+    if(!testFlag(F,FLAG_Z) && (BC.get16.intValue() != 0)) PC(PC.get16.intValue() - 2)
     }
-    val cbits: Int = acu ^ temp ^ sum
-
-    val nc = {
-      if ((sum & 0xff) == 0) UInt(1) else UInt(0)
-    }
-    AF((AF & ~0xfe) | (sum & 0x80) | ((nc << 6)) |
-      (((sum - ((cbits & 16) >> 4)) & 2) << 4) |
-      (cbits & 16) | ((sum - ((cbits >> 4) & 1)) & 8) |
-      op << 2 | 2)
-    if ((sum & 15) == 8 && (cbits & 16) != 0) AF(AF & ~8)
-  }
 
   // INIR
   private final def fn0xed0xb2(x: Int): Unit = {
-    addTStates(-5)
-    var temp: Int = {
-      if (B.intValue == 0) 0x100 else B.get8()
-    }
-    var acu: Int = 0
-    while ( {
-      temp != 0
-    }) {
-      addTStates(21)
-      INCR(1)
-      CHECK_LOG_BYTE(HL)
-      acu = MMU.in8(C)
-      MMU.put8(HL, acu)
-      HL.increment()
-      temp -= 1
-    }
-    temp = B.get8()
-    B(0)
-    INOUTFLAGS_ZERO((C + 1) & 0xff, acu, temp)
+    addTStates(21)
+    fn0xed0xa2(x)
+    if(!testFlag(F,FLAG_Z)) PC(PC.get16 - 2)
+
   }
 
   // OTIR
   private final def fn0xed0xb3(x: Int): Unit = {
-    addTStates(-5)
-    var temp = B.get8().intValue()
-    var acu = 0
-    if (temp == 0) temp = 0x100
-    while ( {
-      temp != 0
-    }) {
-      addTStates(21)
-      INCR(1)
-      CHECK_LOG_BYTE(HL)
-      acu = MMU.get8(HL)
-      MMU.out8(C, acu)
-      HL.increment()
-      temp -= 1
-    }
-    temp = B
-    B(0)
-    INOUTFLAGS_ZERO(L, acu, temp)
+    addTStates(21)
+    fn0xed0xa3(x)
+    if(!testFlag(F,FLAG_Z)) PC(PC.get16 - 2)
   }
 
   // LDDR
@@ -4210,34 +4152,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   // CPDR
   private final def fn0xed0xb9(op: Int = 0xb9): Unit = {
-    addTStates(-5)
-    val acu = A.get8().byteValue
-    var temp= 0
-    var sum = 0
-
-    if (BC.get16 == 0) BC(0x10000)
-    while (op != 0 && sum != 0) {
-      addTStates(21)
-      INCR(1)
-      CHECK_LOG_BYTE(HL)
-      temp = MMU.get8(HL).byteValue
-      HL.decrement()
-      BC.decrement()
-      val op = {
-        if (BC.get16 != 0) 1 else 0
-      }
-      sum = acu - temp
-
-    }
-    val cbits = acu ^ temp ^ sum
-    val nc = {
-      if ((sum & 0xff) == 0) 1 else 0
-    }
-    AF((AF & ~0xfe) | (sum & 0x80) | (nc << 6) |
-      (((sum - ((cbits & 16) >> 4)) & 2) << 4) |
-      (cbits & 16) | ((sum - ((cbits >> 4) & 1)) & 8) |
-      op << 2 | 2)
-    if ((sum & 15) == 8 && (cbits & 16) != 0) AF(AF & ~8)
+    addTStates(21)
+    fn0xed0xa9(op)
+    if(!testFlag(F,FLAG_Z) && (BC.get16 != 0)) PC(PC.get16 - 2)
   }
 
   // INDR
@@ -4265,25 +4182,9 @@ class Z80(isBanked: Boolean, override val machine: AbstractMachine) extends Basi
 
   // OTDR
   private final def fn0xed0xbb(x: Int): Unit = {
-    addTStates(-5)
-    var temp: Int = {
-      if (B.intValue == 0) 0x100 else B
-    }
-    var acu: Int = 0
-    while ( {
-      temp != 0
-    }) {
-      addTStates(21)
-      INCR(1)
-      CHECK_LOG_BYTE(HL)
-      acu = MMU.in8(C)
-      MMU.put8(HL, acu)
-      HL.decrement()
-      temp -= 1
-    }
-    temp = B
-    B(0)
-    INOUTFLAGS_ZERO((C + 1) & 0xff, acu, temp)
+    addTStates(21)
+    fn0xed0xab(x)
+    if(!testFlag(F,FLAG_Z)) PC(PC.get16 - 2)
   }
 
 

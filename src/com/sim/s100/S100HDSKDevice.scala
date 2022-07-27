@@ -15,7 +15,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
   with SupportsOptions with Bootable {
 
   // debug control
-  debug = false
+  debug = true
 
   override val description: String = "Hard Disk"
   override val name = "HD"
@@ -171,8 +171,8 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
         hdskLastCommand = HDSK_NONE
       return parameterBlock(parameterCount - 1)
     }
-    Utils.outln(s"$getName Illegal IN command detected (port=$port, cmd=$hdskLastCommand, pos=$hdskCommandPosition).")
-    CPM_OK
+    Utils.outln(s"$getName Illegal IN command detected (port=${port.toHexString}, cmd=$hdskLastCommand, pos=$hdskCommandPosition).")
+    CPM_ERROR
   }
 
 
@@ -259,7 +259,7 @@ class S100HDSKDevice(machine: S100Machine, mmu: Z80MMU, ports: List[UInt]) exten
         if ((HDSK_RESET <= data.intValue) && (data.intValue <= HDSK_PARAM))
           hdskLastCommand = data.intValue()
         else {
-          Utils.outln(s"$getName Illegal OUT command detected (port=$port, cmd=${data.intValue()}).")
+          Utils.outln(s"$getName Illegal OUT command detected (port=${port.toHexString}, cmd=${data.intValue()}).")
           hdskLastCommand = HDSK_RESET
         }
         hdskCommandPosition = 0
