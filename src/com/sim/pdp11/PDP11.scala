@@ -1395,7 +1395,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
   // Aliases for PC and SP
   @inline def PC: Register16 = R(6)
 
-  var SP: Register16 = R(7)
+  def SP: Register16 = R(7)
 
   val REGFILE: Array[Array[Register16]] = Array.ofDim[Register16](6, 2)
   /* R0-R5, two sets */
@@ -1765,7 +1765,7 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
       }
     }
     // changing what SP points to
-    SP = STACKFILE(cm) /* switch SP */
+    R(7) = STACKFILE(cm) /* switch SP */
     MMU.isenable = MMU.calc_is(cm)
     MMU.dsenable = MMU.calc_ds(cm)
   }
@@ -2224,6 +2224,9 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
     fpd = 0 /* instr done */
   }
 
+  def SET_INT(ipl_dv:Int,int_dv:Int ) = {int_req(ipl_dv) = int_req(ipl_dv) |(int_dv) }
+  def CLR_INT(ipl_dv:Int, int_dv:Int) = { int_req(ipl_dv) = int_req(ipl_dv) & ~(int_dv) }
+  
   /* TODO Test for CIS mid-instruction interrupt */
   //  def cis_int_test (cycles:Int, oldpc:Int):Boolean =
   //  {
@@ -2680,5 +2683,18 @@ object PDP11 {
   val VEC_TTO = 0x34
   val VEC_UCA = 0xc0
   val VEC_UCB = 0xc8
+
+  // Device CSRs */
+  val CSR_V_GO =0 // go */
+  val CSR_V_IE =6 // interrupt enable */
+  val CSR_V_DONE =7 // done */
+  val CSR_V_BUSY =11 // busy */
+  val CSR_V_ERR =15 // error */
+  val CSR_GO =(1 << CSR_V_GO)
+  val CSR_IE =(1 << CSR_V_IE)
+  val CSR_DONE =(1 << CSR_V_DONE)
+  val CSR_BUSY =(1 << CSR_V_BUSY)
+  val CSR_ERR =(1 << CSR_V_ERR)
+
 
 }

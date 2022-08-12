@@ -107,6 +107,7 @@ class S100HDSKUnit(device:S100HDSKDevice) extends BasicUnit(device) with  DiskUn
     sb.append(s"$getName: Sectors/Track: $HDSK_SECTORS_PER_TRACK, Tracks: $HDSK_NUMBER_OF_TRACKS Sector Size:$HDSK_SECTOR_SIZE\n\r")
     // Attaching enabled the device implicitly
     setEnable(true)
+    isAttached = true
     // Allocate the bytebuffer
     byteBuffer = ByteBuffer.allocate(HDSK_SECTOR_SIZE)
 

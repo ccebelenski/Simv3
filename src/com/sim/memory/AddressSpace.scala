@@ -1,12 +1,14 @@
 package com.sim.memory
 
-import com.sim.unsigned.{UByte, UInt}
+import com.sim.unsigned.{UByte, UInt, UShort}
 
 /**
  * Created by christophercebelenski on 7/18/16.
  */
 abstract class AddressSpace(val lowAddress: Int, val highAddress: Int) {
 
+  require(lowAddress <= highAddress)
+  
   // is it read only? (Probably ROM, but could be a memory mapped device on a bus)
   val isReadOnly: Boolean = true
 
@@ -27,5 +29,8 @@ abstract class AddressSpace(val lowAddress: Int, val highAddress: Int) {
 
   def load8(address:Int, value:UByte) : Unit
 
+  def put16(address:Int, value : UShort): Unit
+  
+  def get16(address:Int) : UShort
 
 }

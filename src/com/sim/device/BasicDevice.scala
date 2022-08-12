@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * Created by christophercebelenski on 7/1/16.
  */
-abstract class BasicDevice(val machine:AbstractMachine) extends Named with SupportsOptions {
+abstract trait BasicDevice(val machine:AbstractMachine) extends Named with SupportsOptions {
 
   val description: String
   private val units: ArrayBuffer[BasicUnit] = new ArrayBuffer[BasicUnit]

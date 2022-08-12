@@ -26,6 +26,19 @@ class MemoryAddressSpace(lowAddress: Int, highAddress: Int) extends AddressSpace
   override def load8(address:Int, value:UByte) : Unit = {
     put8(address,value)
   }
+  //put8(address, UByte((value & 0xFF).toByte))
+  //put8(address + 1, UByte(((value >> 8) & 0xFF).toByte))
+
+  override def put16(address: Int, value: UShort): Unit = {
+    M(scaleAddress(address)) = UByte((value & 0xFF).byteValue())
+    M(scaleAddress(address + 1)) = UByte(((value >> 8) & 0xFF).byteValue())
+
+  }
+
+  //get8(address) | (get8(address + UInt(1)
+  override def get16(address: Int): UShort = {
+    UShort((M(scaleAddress(address)) | (M(scaleAddress(address + 1)) << 8 )).shortValue())
+  }
 
   private inline def scaleAddress(address:Int) : Int = {
     mlen - (highAddress - address) - 1

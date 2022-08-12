@@ -164,7 +164,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
 
   def put8(address: Int, value: UByte): Unit = {
     require(address >= 0)
-    var addr: Int = UInt(address) & ADDRMASK
+    var addr: Int = address & ADDRMASK
     var pageaddr = addr
     if(cpu.isBanked && (addr < COMMON)) {
       pageaddr = addr | bankSelect << MAXBANKSIZELOG2.toInt
@@ -183,7 +183,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
           }
         } else if (e.memoryDevice.isDefined) {
           // TODO This needs work
-          e.memoryDevice.get.action(UInt(addr), value, isWrite = true)
+          e.memoryDevice.get.action(addr, isByte=true, value.intValue(),isWrite = true)
         } else Utils.outln(f"MMU: Mis-configured page/address entry - no type found. Addr: 0x$addr%04X")
     }
 
@@ -225,8 +225,34 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   // Store little endian...
   inline def put16(address: Int, value: UShort): Unit = {
 
-    put8(address, UByte((value & 0xFF).toByte))
-    put8(address + 1, UByte(((value >> 8) & 0xFF).toByte))
+    require(address >= 0)
+    var addr: Int = address & ADDRMASK
+    var pageaddr = addr
+    if (cpu.isBanked && (addr < COMMON)) {
+      pageaddr = addr | bankSelect << MAXBANKSIZELOG2.toInt
+      addr = addr | bankSelect << MAXBANKSIZELOG2.toInt
+    }
+    val m = mtab(pageaddr >> LOG2PAGESIZE.toInt)
+    m match {
+      case None => Utils.outln(f"MMU: Write to non-existent memory.  Addr: 0x$addr%04X")
+      case Some(e: MMU_ENTRY) =>
+        if (e.memory.isDefined) {
+          val as = e.memory.get
+          if (as.containsAddress(UInt(addr))) {
+            as.put16(UInt(addr), value)
+
+          }
+          else {
+            val msg = f"MMU: Page table error - Addr: 0x$addr%04X address space: 0x${as.lowAddress.intValue}%04X - 0x${as.highAddress.intValue}%04X"
+            Utils.outln(msg)
+          }
+        } else if (e.memoryDevice.isDefined) {
+          // TODO This needs work
+          e.memoryDevice.get.action(addr, false, value.intValue(),isWrite = true)
+        } else Utils.outln(f"MMU: Mis-configured page/address entry - no type found. Addr: 0x$addr%04X")
+    }
+    //put8(address, UByte((value & 0xFF).toByte))
+    //put8(address + 1, UByte(((value >> 8) & 0xFF).toByte))
   }
 
 // Get8 with PC increment (for consistency)
@@ -266,7 +292,7 @@ abstract class BasicMMU(val cpu: BasicCPU) {
           }
         } else if (e.memoryDevice.isDefined) {
           // TODO This needs work.
-          e.memoryDevice.get.action(UInt(addr), UByte(0), isWrite = false)
+          UByte(e.memoryDevice.get.action(addr, true, 0, isWrite = false).byteValue())
         } else {
           Utils.outln(f"MMU: Mis-configured page/address entry - no type found. Addr: 0x$addr%04X")
           UByte(0)
@@ -278,7 +304,37 @@ abstract class BasicMMU(val cpu: BasicCPU) {
   // Retrieve little endian
 
   inline def get16(address: Int): UShort = {
-    UShort((get8(address) | (get8(address + UInt(1)) << 8)).shortValue())
+    require(address >= 0)
+    var addr: Int = UInt(address) & ADDRMASK
+    var pageaddr = addr
+    if (cpu.isBanked && (addr < COMMON)) {
+      pageaddr = addr | bankSelect << MAXBANKSIZELOG2.toInt
+      addr = addr | bankSelect << MAXBANKSIZELOG2.toInt
+    }
+    val m = mtab(pageaddr >> LOG2PAGESIZE.toInt)
+    m match {
+      case None =>
+        Utils.outln(f"MMU: Read from non-existent memory.  Addr: $addr%04X")
+        UShort(0)
+      case Some(e: MMU_ENTRY) =>
+        if (e.memory.isDefined) {
+          val as = e.memory.get
+          if (as.containsAddress(UInt(addr))) as.get16(addr)
+          else {
+            val msg = f"MMU: Page table error - Addr: 0x$addr%04X address space: 0x${as.lowAddress.intValue}%04X - 0x${as.highAddress.intValue}%04X"
+            Utils.outln(msg)
+            UShort(0)
+          }
+        } else if (e.memoryDevice.isDefined) {
+          // TODO This needs work.
+          UShort(e.memoryDevice.get.action(addr, false, 0,isWrite = false).shortValue())
+        } else {
+          Utils.outln(f"MMU: Mis-configured page/address entry - no type found. Addr: 0x$addr%04X")
+          UShort(0)
+        }
+    }
+
+    //UShort((get8(address) | (get8(address + UInt(1)) << 8)).shortValue())
   }
 
 

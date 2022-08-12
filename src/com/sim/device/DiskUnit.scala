@@ -44,6 +44,9 @@ trait DiskUnit extends BasicUnit with UnitAttachable with SupportsOptions {
   var ioStartTime: Long = 0L
 
   var dirty: Boolean = false
+  
+  var isLocked: Boolean = false
+  var isActive: Boolean = false // TODO Maybe this need to be at unit
 
   def readSector(): Unit = {
     byteBuffer.clear()

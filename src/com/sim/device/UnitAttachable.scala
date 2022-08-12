@@ -14,6 +14,8 @@ trait UnitAttachable {
   // Does this unit support being attached?
   val supportsAttach: Boolean = true
 
+  var isAttached : Boolean = false
+  
   def showAttachedInfo(sb: mutable.StringBuilder): Unit = {
 
     if (supportsAttach && attachedPath.isDefined) sb.append(s"Attached: ${attachedPath.get.getFileName.toString}\n\r")
