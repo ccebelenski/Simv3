@@ -242,52 +242,47 @@ abstract class Register(val nmenomic: String) {
 class Register8(override val nmenomic: String) extends Register(nmenomic) {
   private var value: UByte = UByte(0)
 
-  @inline
-  final inline def get8(): UByte = value
+  inline def get8(): UByte = value
 
-  @inline
-  final inline def set8(value: UByte): Unit = this.value = value
+  inline def set8(value: UByte): Unit = this.value = value
 
-  @inline
-  final inline def set8(value: Register8): Unit = set8(value.get8())
+  inline def set8(value: Register8): Unit = set8(value.get8())
 
   //@inline
   // def set8(value: Byte): Unit = set8(UByte(value))
 
-  @inline
-  final inline def increment(): Unit = value = new UByte((value.byteValue + 1).byteValue)
+  inline def increment(): Unit = value = new UByte((get8().byteValue + 1).byteValue)
 
-  @inline
-  final inline def decrement(): Unit = value = UByte((value.byteValue - 1).byteValue)
+  inline def decrement(): Unit = value = UByte((get8().byteValue - 1).byteValue)
 
   override val aWidth = 8
 
-  override def toString: String = f"$nmenomic:0x${value.intValue()}%02X"
+  override def toString: String = f"$nmenomic:0x${get8().intValue()}%02X"
 
-  final inline def apply(value: UByte): Unit = set8(value)
+  inline def apply(value: UByte): Unit = set8(value)
 
-  final inline def apply(value: Register8): Unit = set8(value.get8())
+  inline def apply(value: Register8): Unit = set8(value.get8())
 
-  final inline def apply(value: Int): Unit = set8(UByte((value & 0xff).byteValue()))
+  inline def apply(value: Int): Unit = set8(UByte((value & 0xff).byteValue()))
 
-  final inline def +(value: Int): Byte = {
-    ((this.value.byteValue + value) & 0xff).byteValue()
+  inline def +(value: Int): Byte = {
+    ((this.get8().byteValue + value) & 0xff).byteValue()
   }
 
-  inline def -(value: Int): Byte = {
-    ((this.value.byteValue - value) & 0xff).byteValue()
+  def -(value: Int): Byte = {
+    ((this.get8().byteValue - value) & 0xff).byteValue()
   }
 
-  final inline def &(value: Int): Int = {
-    this.value & value
+  inline def &(value: Int): Int = {
+    this.get8() & value
   }
 
   inline def |(value: Int): Int = {
-    this.value | value
+    this.get8() | value
   }
 
   inline def ^(value: Int): Int = {
-    this.value ^ value
+    this.get8() ^ value
   }
 
   inline def >>(value: Int): Int = {
@@ -346,19 +341,18 @@ class Register32(override val nmenomic: String) extends Register(nmenomic) {
 
   def set32(value: ULong): Unit = this.value = value
 
-  @inline
-  def set32(value: Register32): Unit = this.value = value.get32
 
-  @inline
-  def set32(value: Int): Unit = this.value = ULong(value.longValue())
+  def set32(value: Register32): Unit = set32(value.get32)
 
-  @inline
-  def set32(value: UShort): Unit = this.value = ULong(value.longValue())
 
-  @inline
+  def set32(value: Int): Unit = set32(ULong(value.longValue()))
+
+  def set32(value: UShort): Unit = set32(ULong(value.longValue()))
+
+
   def increment(): Unit = set32(ULong((get32 + 1).longValue()))
 
-  @inline
+
   def decrement(): Unit = set32(ULong((get32 - 1).longValue()))
 
   def swap(register32: Register32): Unit = {
@@ -397,7 +391,7 @@ class Register32(override val nmenomic: String) extends Register(nmenomic) {
 
   override val aWidth = 32
 
-  override def toString: String = f"$nmenomic:0x${value.intValue()}%08X"
+  override def toString: String = f"$nmenomic:0x${get32().intValue()}%08X"
 
   def apply(value: UShort): Unit = set32(value)
 
@@ -449,10 +443,10 @@ class Register16(override val nmenomic: String) extends Register(nmenomic) {
   def set16(value: UShort): Unit = this.value = value
 
 
-  def set16(value: Register16): Unit = this.value = value.get16
+  def set16(value: Register16): Unit = set16(value.get16)
 
 
-  def set16(value: Int): Unit = this.value = UShort(value.shortValue())
+  def set16(value: Int): Unit = set16(UShort(value.shortValue()))
 
 
   inline def increment(): Unit = set16(UShort((get16 + 1).shortValue()))
@@ -496,7 +490,7 @@ class Register16(override val nmenomic: String) extends Register(nmenomic) {
 
   override val aWidth = 16
 
-  override def toString: String = f"$nmenomic:0x${value.intValue()}%04X"
+  override def toString: String = f"$nmenomic:0x${get16().intValue()}%04X"
 
   inline def apply(value: UShort): Unit = set16(value)
 
@@ -515,4 +509,22 @@ object Register16 {
   implicit def reg162Int(value: Register16): Int = value.get16.toInt
 
   //implicit def int2reg16(value: Int): Register16 = new Register16(value)
+}
+
+// in-memory registers
+class MemoryRegister16(override val nmenomic: String, val physicaladdress:Int , val cpu: BasicCPU) extends Register16(nmenomic) {
+
+  override def get16: UShort = cpu.MMU.get16(physicaladdress)
+
+  override def set16(value: UShort): Unit = cpu.MMU.put16(physicaladdress, value)
+
+}
+class MemoryRegister8(override val nmenomic: String, val physicaladdress:Int, val cpu: BasicCPU) extends Register8(nmenomic) {
+
+  @inline
+  override inline def get8(): UByte = cpu.MMU.get8(physicaladdress)
+
+  @inline
+  inline def set8(value: UByte): Unit = cpu.MMU.put8(physicaladdress,value)
+
 }

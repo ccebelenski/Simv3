@@ -99,10 +99,190 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
     findUnitByNumber((x >> RKDA_V_DRIVE) & RKDA_M_DRIVE).orNull.asInstanceOf[RK11DUnit]
   }
 
-  // TODO
+  // start a new op
   def rk_go(): Unit = {
+    var sect: Int = 0
+    var cyl: Int = 0
+    var cpu: PDP11 = machine.getCPU.asInstanceOf[PDP11]
+
+    var uptr: RK11DUnit = _
+
+    var func = RK11D.GET_FUNC(rkcs) /* get function */
+    if (func == RK11D.RKCS_CTLRESET) {
+      /* control reset? */
+      rker = 0 /* clear errors */
+      rkda = 0
+      rkba = 0
+      rkcs = PDP11.CSR_DONE
+      rkintq = 0 /* clr int queue */
+      //sim_debug (RKDEB_INT, &rk_dev, "rk_go(CLR_INT)\n");
+      cpu.CLR_INT(PDP11.IPL_RK, PDP11.INT_RK) /* clr int request */
+      return
+    }
+    rker = rker & ~RK11D.RKER_SOFT /* clear soft errors */
+    if (rker == 0) /* redo summary */
+      rkcs = rkcs & ~RK11D.RKCS_ERR
+    rkcs = rkcs & ~RK11D.RKCS_SCP /* clear sch compl*/
+    rk_clr_done() /* clear done */
+    uptr = GET_DRIVE(rkda) /* get drive no */
+    //uptr = rk_dev.units + last_drv;                         /* select unit */
+    if (!uptr.isEnabled) {
+      /* not present? */
+      rk_set_done(RK11D.RKER_NXD)
+      return
+    }
+    if (!uptr.isAttached || /* not att or busy? */
+      (uptr.isActive)) {
+      rk_set_done(RK11D.RKER_DRE)
+      return
+    }
+    if ((rkcs & RK11D.RKCS_FMT) != 0 && /* format and */
+      (func != RK11D.RKCS_READ) && (func != RK11D.RKCS_WRITE)) {
+      /* not read or write? */
+      rk_set_done(RK11D.RKER_PGE)
+      return
+    }
+    if ((func == RK11D.RKCS_WRITE) && /* write and locked? */
+      (uptr.isLocked)) {
+      rk_set_done(RK11D.RKER_WLK)
+      return
+    }
+    if (func == RK11D.RKCS_WLK) {
+      /* write lock? */
+      uptr.isLocked = true
+      //uptr->flags = uptr->flags | UNIT_SWLK;
+      rk_set_done(0)
+      return
+    }
+    if (func == RK11D.RKCS_DRVRESET) {
+      /* drive reset? */
+      //uptr->flags = uptr->flags & ~UNIT_SWLK;
+      uptr.isLocked = false
+      cyl = 0
+      sect = 0
+      func = RK11D.RKCS_SEEK
+    }
+    else {
+      sect = RK11D.GET_SECT(rkda)
+      cyl = RK11D.GET_CYL(rkda)
+    }
+    if (sect >= RK11D.RK_NUMSC) {
+      /* bad sector? */
+      rk_set_done(RK11D.RKER_NXS)
+      return
+    }
+    if (cyl >= RK11D.RK_NUMCY) {
+      /* bad cyl? */
+      rk_set_done(RK11D.RKER_NXC)
+      return
+    }
+    val i = Math.abs(cyl - uptr.current_track) * rk_swait /* seek time */
+    if (func == RK11D.RKCS_SEEK) {
+      /* seek? */
+      rk_set_done(0) /* set done */
+      sim_activate(uptr, MAX(RK_MIN, i));
+      /* schedule */
+    }
+    else sim_activate(uptr, i + rk_rwait);
+    uptr.FUNC = func /* save func */
+    uptr.current_track = cyl /* put on cylinder */
+    return;
+  }
+
+  /* Interrupt state change routines
+     rk_set_done          set done and possibly errors
+     rk_clr_done          clear done
+     rk_inta              acknowledge intererupt
+  */
+
+  def rk_set_done(error: Int): Unit = {
+    rkcs = rkcs | PDP11.CSR_DONE
+    /* set done */
+    if (error != 0) {
+      rker = rker | error
+      /* update error */
+      if (rker != 0) /* update err flags */
+        rkcs = rkcs | RK11D.RKCS_ERR
+      if (rker & RK11D.RKER_HARD != 0)
+        rkcs = rkcs | RK11D.RKCS_HERR
+    }
+    if (rkcs & PDP11.CSR_IE != 0) {
+      /* int enable? */
+      rkintq = rkintq | RK11D.RK_CTLI
+      /* set ctrl int */
+      //sim_debug(RKDEB_INT, & rk_dev, "rk_set_done(SET_INT)\n");
+      cpu.SET_INT(PDP11.IPL_RK, PDP11.INT_RK) // set int request
+      /* request int */
+    }
+    else {
+      rkintq = 0;
+      /* clear queue */
+      //sim_debug(RKDEB_INT, & rk_dev, "rk_set_done(CLR_INT)\n");
+      cpu.CLR_INT(PDP11.IPL_RK, PDP11.INT_RK) /* clr int request */
+    }
+  }
+
+  def rk_clr_done(): Unit = {
+    rkcs = rkcs & ~PDP11.CSR_DONE;
+    /* clear done */
+    rkintq = rkintq & ~RK11D.RK_CTLI
+    /* clear ctl int */
+    //sim_debug(RKDEB_INT, & rk_dev, "rk_clr_done(CLR_INT)\n");
+    cpu.CLR_INT(PDP11.IPL_RK, PDP11.INT_RK) /* clr int request */
 
   }
+
+  def rk_inta(): Int = {
+    for (i <- 0 to RK11D.RK_NUMDR) {
+      /* loop thru intq */
+      if (rkintq & (1 << i)) {
+        /* bit i set? */
+        rkintq = rkintq & ~(1 << i)
+        /* clear bit i */
+        if (rkintq != 0) {
+          /* queue next */
+          //sim_debug(RKDEB_INT, & rk_dev, "rk_inta(SET_INT)\n");
+          cpu.SET_INT(PDP11.IPL_RK, PDP11.INT_RK) // set int request
+        }
+        rkds = (rkds & ~RK11D.RKDS_ID) | /* id drive */
+          (((i == 0) ? last_drv: i - 1) << RKDS_V_ID);
+        //sim_debug(RKDEB_INT, & rk_dev, "rk_inta(vec=0%o)\n", rk_dib.vec);
+        return rk_dib.vec;
+        /* return vector */
+      }
+    }
+    rkintq = 0 /* clear queue */
+    0 /* passive release */
+  }
+
+  /* Device reset */
+
+  def rk_reset(): Unit = {
+    rkcs = PDP11.CSR_DONE
+    rkda = 0
+    rkba = 0
+    rker = 0
+    rkds = 0
+    rkintq = 0
+    last_drv = 0
+    //sim_debug(RKDEB_INT, & rk_dev, "rk_reset(CLR_INT)\n");
+    cpu.CLR_INT(PDP11.IPL_RK, PDP11.INT_RK) /* clr int request */
+    for (unit <- getUnits())
+    {
+      sim_cancel(unit)
+      unit.CYL = 0
+      unit.FUNC = 0
+      unit.isLocked(false)
+    }
+    // TODO clear the xfer buffer
+    if (rkxb == NULL)
+      rkxb = (RKCONTR *) calloc(RK_MAXFR, sizeof(RKCONTR));
+    if (rkxb == NULL)
+      return SCPE_MEM;
+    return auto_config(0, 0);
+  }
+
+
 }
 
 object RKDS {
@@ -154,7 +334,7 @@ class RKCS(address: Int, device: RK11D) extends MappedDeviceAction16(address, de
 
     if (isWrite) {
       var data = value
-      var cpu: PDP11 = device.machine.getCPU.asInstanceOf[PDP11]
+      val cpu: PDP11 = device.machine.getCPU.asInstanceOf[PDP11]
       device.rkcs = device.rkcs & RK11D.RKCS_REAL
       if (isByte) data = {
         if (oddAddress) (device.rkcs & 0xFF) | (data << 8) else (device.rkcs & ~0xFF) | data
@@ -305,7 +485,7 @@ object RK11D {
   val BOOT_LEN: Int = boot_rom.length
 
   // RKDS Bits
-  val RKDS_SC = 0x0f // sector counter */
+  val RKDS_SC: Int = 0x0f // sector counter */
   val RKDS_ON_SC = 0x10 // on sector */
   val RKDS_WLK = 0x20 // write locked */
   val RKDS_RWS = 0x40 // rd/wr/seek ready */
@@ -363,7 +543,7 @@ object RK11D {
   }
 
   // RKDA Bits 
-  val RKDA_V_SECT = 0 // sector
+  val RKDA_V_SECT: Int = 0 // sector
   val RKDA_M_SECT = 0x0f
   val RKDA_V_TRACK = 4 // track
   val RKDA_M_TRACK = 0x1ff
@@ -373,25 +553,25 @@ object RK11D {
   val RKDA_M_DRIVE = 07
 
   // RKBA Bits
-  val RKBA_IMP = 0xfffe
+  val RKBA_IMP: Int = 0xfffe
 
-  def GET_SECT(x: Int) = {
-    (((x) >> RKDA_V_SECT) & RKDA_M_SECT)
+  def GET_SECT(x: Int): Int = {
+    (x >> RKDA_V_SECT) & RKDA_M_SECT
   }
 
-  def GET_CYL(x: Int) = {
+  def GET_CYL(x: Int): Int = {
     (((x) >> RKDA_V_CYL) & RKDA_M_CYL)
   }
 
-  def GET_TRACK(x: Int) = {
-    (((x) >> RKDA_V_TRACK) & RKDA_M_TRACK)
+  def GET_TRACK(x: Int): Int = {
+    (x >> RKDA_V_TRACK) & RKDA_M_TRACK
   }
 
-  def GET_DRIVE(x: Int) = {
-    (((x) >> RKDA_V_DRIVE) & RKDA_M_DRIVE)
+  def GET_DRIVE(x: Int): Int = {
+    (x >> RKDA_V_DRIVE) & RKDA_M_DRIVE
   }
 
-  def GET_DA(x: Int) = {
+  def GET_DA(x: Int): Int = {
     ((GET_TRACK(x) * RK_NUMSC) + GET_SECT(x))
   }
 

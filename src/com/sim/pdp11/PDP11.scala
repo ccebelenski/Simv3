@@ -2224,8 +2224,8 @@ abstract class PDP11(isBanked: Boolean = false, override val machine: AbstractMa
     fpd = 0 /* instr done */
   }
 
-  def SET_INT(ipl_dv:Int,int_dv:Int ) = {int_req(ipl_dv) = int_req(ipl_dv) |(int_dv) }
-  def CLR_INT(ipl_dv:Int, int_dv:Int) = { int_req(ipl_dv) = int_req(ipl_dv) & ~(int_dv) }
+  def SET_INT(ipl_dv:Int,int_dv:Int ): Unit = {int_req(ipl_dv) = int_req(ipl_dv) |(int_dv) }
+  def CLR_INT(ipl_dv:Int, int_dv:Int): Unit = { int_req(ipl_dv) = int_req(ipl_dv) & ~(int_dv) }
   
   /* TODO Test for CIS mid-instruction interrupt */
   //  def cis_int_test (cycles:Int, oldpc:Int):Boolean =
@@ -2330,45 +2330,45 @@ object PDP11 {
    An interrupt summary bit is kept with traps, to minimize overhead
 */
 
-  val TRAP_V_RED = 0 //red stk abort  4
-  val TRAP_V_ODD = 1 //odd address    4
-  val TRAP_V_MME = 2 //mem mgt      250
-  val TRAP_V_NXM = 3 //nx memory      4
-  val TRAP_V_PAR = 4 //parity err   114
-  val TRAP_V_PRV = 5 //priv inst      4
-  val TRAP_V_ILL = 6 //illegal inst  10
-  val TRAP_V_BPT = 7 //BPT           14
-  val TRAP_V_IOT = 8 //IOT           20
-  val TRAP_V_EMT = 9 //EMT           30
-  val TRAP_V_TRAP = 10 // TRAP          34
-  val TRAP_V_TRC = 11 //T bit         14
-  val TRAP_V_YEL = 12 //stack          4
-  val TRAP_V_PWRFL = 13 // power fail    24
-  val TRAP_V_FPE = 14 // fpe          244
-  val TRAP_V_MAX = 15 // intr = max trp #
-  val ABRT_V_BKPT = 16 // stop due to breakpt
-  val TRAP_RED: UInt = UInt(1) << TRAP_V_RED
-  val TRAP_ODD: UInt = UInt(1) << TRAP_V_ODD
-  val TRAP_MME: UInt = UInt(1) << TRAP_V_MME
-  val TRAP_NXM: UInt = UInt(1) << TRAP_V_NXM
-  val TRAP_PAR: UInt = UInt(1) << TRAP_V_PAR
-  val TRAP_PRV: UInt = UInt(1) << TRAP_V_PRV
-  val TRAP_ILL: UInt = UInt(1) << TRAP_V_ILL
-  val TRAP_BPT: UInt = UInt(1) << TRAP_V_BPT
-  val TRAP_IOT: UInt = UInt(1) << TRAP_V_IOT
-  val TRAP_EMT: UInt = UInt(1) << TRAP_V_EMT
-  val TRAP_TRAP: UInt = UInt(1) << TRAP_V_TRAP
-  val TRAP_TRC: UInt = UInt(1) << TRAP_V_TRC
-  val TRAP_YEL: UInt = UInt(1) << TRAP_V_YEL
-  val TRAP_PWRFL: UInt = UInt(1) << TRAP_V_PWRFL
-  val TRAP_FPE: UInt = UInt(1) << TRAP_V_FPE
-  val TRAP_INT: UInt = UInt(1) << TRAP_V_MAX
-  val TRAP_ALL: UInt = UInt((UInt(1) << TRAP_V_MAX) - 1)
+  val TRAP_V_RED:Int = 0 //red stk abort  4
+  val TRAP_V_ODD:Int = 1 //odd address    4
+  val TRAP_V_MME:Int = 2 //mem mgt      250
+  val TRAP_V_NXM:Int = 3 //nx memory      4
+  val TRAP_V_PAR:Int = 4 //parity err   114
+  val TRAP_V_PRV:Int = 5 //priv inst      4
+  val TRAP_V_ILL:Int = 6 //illegal inst  10
+  val TRAP_V_BPT:Int = 7 //BPT           14
+  val TRAP_V_IOT:Int = 8 //IOT           20
+  val TRAP_V_EMT:Int = 9 //EMT           30
+  val TRAP_V_TRAP:Int = 10 // TRAP          34
+  val TRAP_V_TRC:Int = 11 //T bit         14
+  val TRAP_V_YEL:Int = 12 //stack          4
+  val TRAP_V_PWRFL:Int = 13 // power fail    24
+  val TRAP_V_FPE:Int = 14 // fpe          244
+  val TRAP_V_MAX:Int = 15 // intr= max trp #
+  val ABRT_V_BKPT:Int = 16 // stop due to breakpt
+  val TRAP_RED: Int =1 << TRAP_V_RED
+  val TRAP_ODD: Int =1 << TRAP_V_ODD
+  val TRAP_MME: Int =1 << TRAP_V_MME
+  val TRAP_NXM: Int =1 << TRAP_V_NXM
+  val TRAP_PAR: Int =1 << TRAP_V_PAR
+  val TRAP_PRV: Int =1 << TRAP_V_PRV
+  val TRAP_ILL: Int =1 << TRAP_V_ILL
+  val TRAP_BPT: Int =1 << TRAP_V_BPT
+  val TRAP_IOT: Int =1 << TRAP_V_IOT
+  val TRAP_EMT: Int =1 << TRAP_V_EMT
+  val TRAP_TRAP: Int =1 << TRAP_V_TRAP
+  val TRAP_TRC: Int =1 << TRAP_V_TRC
+  val TRAP_YEL: Int =1 << TRAP_V_YEL
+  val TRAP_PWRFL: Int =1 << TRAP_V_PWRFL
+  val TRAP_FPE: Int =1 << TRAP_V_FPE
+  val TRAP_INT: Int =1 << TRAP_V_MAX
+  val TRAP_ALL: Int =(1 << TRAP_V_MAX) - 1
   /* all traps */
-  val ABRT_BKPT: UInt = UInt(1) << ABRT_V_BKPT
+  val ABRT_BKPT: Int =1 << ABRT_V_BKPT
 
 
-  val trap_clear: Array[UInt] = Array(/* trap clears */
+  val trap_clear: Array[Int] = Array(/* trap clears */
     TRAP_RED + TRAP_PAR + TRAP_YEL + TRAP_TRC + TRAP_ODD + TRAP_NXM,
     TRAP_ODD + TRAP_PAR + TRAP_YEL + TRAP_TRC,
     TRAP_MME + TRAP_PAR + TRAP_YEL + TRAP_TRC,
@@ -2481,33 +2481,33 @@ object PDP11 {
 
   val INT_V_PIR5 = 0
   /* BR5 */
-  val INT_V_RK = 1
-  val INT_V_RL = 2
-  val INT_V_RX = 3
-  val INT_V_TM = 4
-  val INT_V_RP = 5
-  val INT_V_TS = 6
-  val INT_V_HK = 7
-  val INT_V_RQ = 8
-  val INT_V_DZRX = 9
-  val INT_V_DZTX = 10
-  val INT_V_TQ = 11
-  val INT_V_RY = 12
-  val INT_V_XQ = 13
-  val INT_V_XU = 14
-  val INT_V_TU = 15
-  val INT_V_RF = 16
-  val INT_V_RC = 17
-  val INT_V_RS = 18
-  val INT_V_DMCRX = 19
-  val INT_V_DMCTX = 20
-  val INT_V_DUPRX = 21
-  val INT_V_DUPTX = 22
-  val INT_V_KMCA = 23
-  val INT_V_KMCB = 24
-  val INT_V_UCB = 25
-  val INT_V_CH = 26
-  val INT_V_NG = 27
+  val INT_V_RK:Int = 1
+  val INT_V_RL:Int = 2
+  val INT_V_RX:Int = 3
+  val INT_V_TM:Int = 4
+  val INT_V_RP:Int = 5
+  val INT_V_TS:Int = 6
+  val INT_V_HK:Int = 7
+  val INT_V_RQ:Int = 8
+  val INT_V_DZRX:Int = 9
+  val INT_V_DZTX:Int = 10
+  val INT_V_TQ:Int = 11
+  val INT_V_RY:Int = 12
+  val INT_V_XQ:Int = 13
+  val INT_V_XU:Int = 14
+  val INT_V_TU:Int = 15
+  val INT_V_RF:Int = 16
+  val INT_V_RC:Int = 17
+  val INT_V_RS:Int = 18
+  val INT_V_DMCRX:Int = 19
+  val INT_V_DMCTX:Int = 20
+  val INT_V_DUPRX:Int = 21
+  val INT_V_DUPTX:Int = 22
+  val INT_V_KMCA:Int = 23
+  val INT_V_KMCB:Int = 24
+  val INT_V_UCB:Int = 25
+  val INT_V_CH:Int = 26
+  val INT_V_NG:Int = 27
 
   val INT_V_PIR4 = 0
   /* BR4 */
@@ -2540,73 +2540,73 @@ object PDP11 {
   /* BR2 */
   val INT_V_PIR1 = 0 /* BR1 */
 
-  val INT_PIR7: UInt = UInt(1) << INT_V_PIR7
-  val INT_UCB: UInt = UInt(1) << INT_V_UCB
-  val INT_PIR6: UInt = UInt(1) << INT_V_PIR6
-  val INT_CLK: UInt = UInt(1) << INT_V_CLK
-  val INT_PCLK: UInt = UInt(1) << INT_V_PCLK
-  val INT_DTA: UInt = UInt(1) << INT_V_DTA
-  val INT_TA: UInt = UInt(1) << INT_V_TA
-  val INT_CR: UInt = UInt(1) << INT_V_CR
-  val INT_PIR5: UInt = UInt(1) << INT_V_PIR5
-  val INT_RK: UInt = UInt(1) << INT_V_RK
-  val INT_RL: UInt = UInt(1) << INT_V_RL
-  val INT_RX: UInt = UInt(1) << INT_V_RX
-  val INT_TM: UInt = UInt(1) << INT_V_TM
-  val INT_RP: UInt = UInt(1) << INT_V_RP
-  val INT_TS: UInt = UInt(1) << INT_V_TS
-  val INT_HK: UInt = UInt(1) << INT_V_HK
-  val INT_RQ: UInt = UInt(1) << INT_V_RQ
-  val INT_DZRX: UInt = UInt(1) << INT_V_DZRX
-  val INT_DZTX: UInt = UInt(1) << INT_V_DZTX
-  val INT_TQ: UInt = UInt(1) << INT_V_TQ
-  val INT_RY: UInt = UInt(1) << INT_V_RY
-  val INT_XQ: UInt = UInt(1) << INT_V_XQ
-  val INT_XU: UInt = UInt(1) << INT_V_XU
-  val INT_TU: UInt = UInt(1) << INT_V_TU
-  val INT_RF: UInt = UInt(1) << INT_V_RF
-  val INT_RC: UInt = UInt(1) << INT_V_RC
-  val INT_RS: UInt = UInt(1) << INT_V_RS
-  val INT_DMCRX: UInt = UInt(1) << INT_V_DMCRX
-  val INT_DMCTX: UInt = UInt(1) << INT_V_DMCTX
-  val INT_KMCA: UInt = UInt(1) << INT_V_KMCA
-  val INT_KMCB: UInt = UInt(1) << INT_V_KMCB
-  val INT_DUPRX: UInt = UInt(1) << INT_V_DUPRX
-  val INT_DUPTX: UInt = UInt(1) << INT_V_DUPTX
-  val INT_UCA: UInt = UInt(1) << INT_V_UCA
-  val INT_PIR4: UInt = UInt(1) << INT_V_PIR4
-  val INT_TTI: UInt = UInt(1) << INT_V_TTI
-  val INT_TTO: UInt = UInt(1) << INT_V_TTO
-  val INT_PTR: UInt = UInt(1) << INT_V_PTR
-  val INT_PTP: UInt = UInt(1) << INT_V_PTP
-  val INT_LPT: UInt = UInt(1) << INT_V_LPT
-  val INT_VHRX: UInt = UInt(1) << INT_V_VHRX
-  val INT_VHTX: UInt = UInt(1) << INT_V_VHTX
-  val INT_CD: UInt = UInt(1) << INT_V_CD
-  val INT_DLI: UInt = UInt(1) << INT_V_DLI
-  val INT_DLO: UInt = UInt(1) << INT_V_DLO
-  val INT_DCI: UInt = UInt(1) << INT_V_DCI
-  val INT_DCO: UInt = UInt(1) << INT_V_DCO
-  val INT_VTLP: UInt = UInt(1) << INT_V_VTLP
-  val INT_VTST: UInt = UInt(1) << INT_V_VTST
-  val INT_VTCH: UInt = UInt(1) << INT_V_VTCH
-  val INT_VTNM: UInt = UInt(1) << INT_V_VTNM
-  val INT_LK: UInt = UInt(1) << INT_V_LK
-  val INT_PIR3: UInt = UInt(1) << INT_V_PIR3
-  val INT_PIR2: UInt = UInt(1) << INT_V_PIR2
-  val INT_PIR1: UInt = UInt(1) << INT_V_PIR1
-  val INT_TDRX: UInt = UInt(1) << INT_V_TDRX
-  val INT_TDTX: UInt = UInt(1) << INT_V_TDTX
-  val INT_CH: UInt = UInt(1) << INT_V_CH
-  val INT_NG: UInt = UInt(1) << INT_V_NG
+  val INT_PIR7: Int = 1 << INT_V_PIR7
+  val INT_UCB: Int = 1 << INT_V_UCB
+  val INT_PIR6: Int = 1 << INT_V_PIR6
+  val INT_CLK: Int = 1 << INT_V_CLK
+  val INT_PCLK: Int = 1 << INT_V_PCLK
+  val INT_DTA: Int = 1 << INT_V_DTA
+  val INT_TA: Int = 1 << INT_V_TA
+  val INT_CR: Int = 1 << INT_V_CR
+  val INT_PIR5: Int = 1 << INT_V_PIR5
+  val INT_RK: Int = 1 << INT_V_RK
+  val INT_RL: Int = 1 << INT_V_RL
+  val INT_RX: Int = 1 << INT_V_RX
+  val INT_TM: Int = 1 << INT_V_TM
+  val INT_RP: Int = 1 << INT_V_RP
+  val INT_TS: Int = 1 << INT_V_TS
+  val INT_HK: Int = 1 << INT_V_HK
+  val INT_RQ: Int = 1 << INT_V_RQ
+  val INT_DZRX: Int = 1 << INT_V_DZRX
+  val INT_DZTX: Int = 1 << INT_V_DZTX
+  val INT_TQ: Int = 1 << INT_V_TQ
+  val INT_RY: Int = 1 << INT_V_RY
+  val INT_XQ: Int = 1 << INT_V_XQ
+  val INT_XU: Int = 1 << INT_V_XU
+  val INT_TU: Int = 1 << INT_V_TU
+  val INT_RF: Int = 1 << INT_V_RF
+  val INT_RC: Int = 1 << INT_V_RC
+  val INT_RS: Int = 1 << INT_V_RS
+  val INT_DMCRX: Int = 1 << INT_V_DMCRX
+  val INT_DMCTX: Int = 1 << INT_V_DMCTX
+  val INT_KMCA: Int = 1 << INT_V_KMCA
+  val INT_KMCB: Int = 1 << INT_V_KMCB
+  val INT_DUPRX: Int = 1 << INT_V_DUPRX
+  val INT_DUPTX: Int = 1 << INT_V_DUPTX
+  val INT_UCA: Int = 1 << INT_V_UCA
+  val INT_PIR4: Int = 1 << INT_V_PIR4
+  val INT_TTI: Int = 1 << INT_V_TTI
+  val INT_TTO: Int = 1 << INT_V_TTO
+  val INT_PTR: Int = 1 << INT_V_PTR
+  val INT_PTP: Int = 1 << INT_V_PTP
+  val INT_LPT: Int = 1 << INT_V_LPT
+  val INT_VHRX: Int = 1 << INT_V_VHRX
+  val INT_VHTX: Int = 1 << INT_V_VHTX
+  val INT_CD: Int = 1 << INT_V_CD
+  val INT_DLI: Int = 1 << INT_V_DLI
+  val INT_DLO: Int = 1 << INT_V_DLO
+  val INT_DCI: Int = 1 << INT_V_DCI
+  val INT_DCO: Int = 1 << INT_V_DCO
+  val INT_VTLP: Int = 1 << INT_V_VTLP
+  val INT_VTST: Int = 1 << INT_V_VTST
+  val INT_VTCH: Int = 1 << INT_V_VTCH
+  val INT_VTNM: Int = 1 << INT_V_VTNM
+  val INT_LK: Int = 1 << INT_V_LK
+  val INT_PIR3: Int = 1 << INT_V_PIR3
+  val INT_PIR2: Int = 1 << INT_V_PIR2
+  val INT_PIR1: Int = 1 << INT_V_PIR1
+  val INT_TDRX: Int = 1 << INT_V_TDRX
+  val INT_TDTX: Int = 1 << INT_V_TDTX
+  val INT_CH: Int = 1 << INT_V_CH
+  val INT_NG: Int = 1 << INT_V_NG
 
-  val INT_INTERNAL7: UInt = INT_PIR7
-  val INT_INTERNAL6: UInt = INT_PIR6 | INT_CLK
-  val INT_INTERNAL5: UInt = INT_PIR5
-  val INT_INTERNAL4: UInt = INT_PIR4
-  val INT_INTERNAL3: UInt = INT_PIR3
-  val INT_INTERNAL2: UInt = INT_PIR2
-  val INT_INTERNAL1: UInt = INT_PIR1
+  val INT_INTERNAL7: Int = INT_PIR7
+  val INT_INTERNAL6: Int = INT_PIR6 | INT_CLK
+  val INT_INTERNAL5: Int = INT_PIR5
+  val INT_INTERNAL4: Int = INT_PIR4
+  val INT_INTERNAL3: Int = INT_PIR3
+  val INT_INTERNAL2: Int = INT_PIR2
+  val INT_INTERNAL1: Int = INT_PIR1
 
   val IPL_UCB = 7
   /* int pri levels */
@@ -2615,7 +2615,7 @@ object PDP11 {
   val IPL_DTA = 6
   val IPL_TA = 6
   val IPL_CR = 6
-  val IPL_RK = 5
+  val IPL_RK: Int = 5
   val IPL_RL = 5
   val IPL_RX = 5
   val IPL_TM = 5
@@ -2685,16 +2685,16 @@ object PDP11 {
   val VEC_UCB = 0xc8
 
   // Device CSRs */
-  val CSR_V_GO =0 // go */
-  val CSR_V_IE =6 // interrupt enable */
-  val CSR_V_DONE =7 // done */
-  val CSR_V_BUSY =11 // busy */
-  val CSR_V_ERR =15 // error */
-  val CSR_GO =(1 << CSR_V_GO)
-  val CSR_IE =(1 << CSR_V_IE)
-  val CSR_DONE =(1 << CSR_V_DONE)
-  val CSR_BUSY =(1 << CSR_V_BUSY)
-  val CSR_ERR =(1 << CSR_V_ERR)
+  val CSR_V_GO: Int =0 // go */
+  val CSR_V_IE: Int =6 // interrupt enable */
+  val CSR_V_DONE: Int =7 // done */
+  val CSR_V_BUSY: Int =11 // busy */
+  val CSR_V_ERR: Int =15 // error */
+  val CSR_GO: Int =(1 << CSR_V_GO)
+  val CSR_IE: Int =(1 << CSR_V_IE)
+  val CSR_DONE: Int =(1 << CSR_V_DONE)
+  val CSR_BUSY: Int =(1 << CSR_V_BUSY)
+  val CSR_ERR: Int =(1 << CSR_V_ERR)
 
 
 }
