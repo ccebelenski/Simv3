@@ -48,6 +48,10 @@ trait DiskUnit extends BasicUnit with UnitAttachable with SupportsOptions {
   var isLocked: Boolean = false
   var isActive: Boolean = false // TODO Maybe this need to be at unit
 
+  def clearBuffer(): Unit = {
+    byteBuffer.clear()
+  }
+  
   def readSector(): Unit = {
     byteBuffer.clear()
     seek()

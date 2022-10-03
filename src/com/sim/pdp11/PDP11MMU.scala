@@ -161,9 +161,9 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
         UInt(cpu.R(reg) | ds)
 
       case 2 => /* (R)+ */
-        val adr = UInt((cpu.R(reg) + UInt(2)) & 0xffff)
+        val adr: UInt = UInt((cpu.R(reg) + UInt(2)) & 0xffff)
         cpu.R(reg).set16(adr.intValue)
-        //cpu.R(reg) (((adr = cpu.R(reg).toUInt) + UInt(2) )& 0xffff)
+
         reg_mods = calc_MMR1(0x10 | reg)
         if (update_MM && (reg != 7))
           MMR1.set16(reg_mods)
@@ -388,7 +388,7 @@ class PDP11MMU(cpu: PDP11) extends BasicMMU(cpu) {
     PReadB(last_pa)
   }
 
-  val int_internal: Array[UInt] = Array(
+  val int_internal: Array[Int] = Array(
     UInt(0), PDP11.INT_INTERNAL1, PDP11.INT_INTERNAL2, PDP11.INT_INTERNAL3,
     PDP11.INT_INTERNAL4, PDP11.INT_INTERNAL5, PDP11.INT_INTERNAL6, PDP11.INT_INTERNAL7
   )

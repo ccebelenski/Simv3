@@ -103,7 +103,7 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
   def rk_go(): Unit = {
     var sect: Int = 0
     var cyl: Int = 0
-    var cpu: PDP11 = machine.getCPU.asInstanceOf[PDP11]
+    val cpu: PDP11 = machine.getCPU.asInstanceOf[PDP11]
 
     var uptr: RK11DUnit = _
 
@@ -186,7 +186,6 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
     else sim_activate(uptr, i + rk_rwait);
     uptr.FUNC = func /* save func */
     uptr.current_track = cyl /* put on cylinder */
-    return;
   }
 
   /* Interrupt state change routines
@@ -203,7 +202,7 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
       /* update error */
       if (rker != 0) /* update err flags */
         rkcs = rkcs | RK11D.RKCS_ERR
-      if (rker & RK11D.RKER_HARD != 0)
+      if ((rker & RK11D.RKER_HARD) != 0)
         rkcs = rkcs | RK11D.RKCS_HERR
     }
     if (rkcs & PDP11.CSR_IE != 0) {
@@ -223,7 +222,7 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
   }
 
   def rk_clr_done(): Unit = {
-    rkcs = rkcs & ~PDP11.CSR_DONE;
+    rkcs = rkcs & ~PDP11.CSR_DONE
     /* clear done */
     rkintq = rkintq & ~RK11D.RK_CTLI
     /* clear ctl int */
@@ -235,7 +234,7 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
   def rk_inta(): Int = {
     for (i <- 0 to RK11D.RK_NUMDR) {
       /* loop thru intq */
-      if (rkintq & (1 << i)) {
+      if ((rkintq & (1 << i)) != 0) {
         /* bit i set? */
         rkintq = rkintq & ~(1 << i)
         /* clear bit i */
@@ -273,13 +272,11 @@ class RK11D(machine: AbstractMachine, lowAddress: UInt, highAddress: UInt) exten
       unit.CYL = 0
       unit.FUNC = 0
       unit.isLocked(false)
+      unit.clearBuffer()
+
     }
-    // TODO clear the xfer buffer
-    if (rkxb == NULL)
-      rkxb = (RKCONTR *) calloc(RK_MAXFR, sizeof(RKCONTR));
-    if (rkxb == NULL)
-      return SCPE_MEM;
-    return auto_config(0, 0);
+
+    //return auto_config(0, 0);
   }
 
 

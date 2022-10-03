@@ -15,7 +15,7 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
 
   override val waitTime: Long = 0L
   override var MAX_TRACKS: Int = RK11D.RK_NUMTR
-  override var DSK_SECT: Int = RK11D.RK11D.RK_NUMWD * 2 // translate from words to bytes
+  override var DSK_SECT: Int = RK11D.RK_NUMWD * 2 // translate from words to bytes
   override var DSK_SECTSIZE: Int = RK11D.RK_NUMSC
 
   override def cancel(): Unit = ???
@@ -26,9 +26,10 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
 
   override def optionChanged(sb: mutable.StringBuilder): Unit = ???
 
+  // Stored disk function
+  var FUNC:Int = 0
+
   override def attach(fileSpec: String, sb: mutable.StringBuilder): Boolean = {
-
-
     if (isAvailable) {
       sb.append(s"$getName: Unit is still attached.   DETACH first.\n")
       return true
@@ -96,7 +97,7 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
       /* seek */
       device.rkcs = device.rkcs | RK11D.RKCS_SCP
       /* set seek done */
-      if (device.rkcs & PDP11.CSR_IE) {
+      if ((device.rkcs & PDP11.CSR_IE)!=0) {
         /* ints enabled? */
         rkintq = rkintq | RK_SCPI(drv)
         /* queue request */
@@ -120,9 +121,9 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
       rk_set_done(RK11D.RKER_DRE)
       return //IORETURN(rk_stopioe, SCPE_UNATT)
     }
-    sect = GET_SECT(device.rkda)
+    sect = RK11D.GET_SECT(device.rkda)
     /* get sector, cyl */
-    cyl = GET_CYL(device.rkda)
+    cyl = RK11D.GET_CYL(device.rkda)
     if (sect >= RK11D.RK_NUMSC) {
       /* bad sector? */
       rk_set_done(RK11D.RKER_NXS)
@@ -135,11 +136,11 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
     }
     ma = ((device.rkcs & RK11D.RKCS_MEX) << (16 - RK11D.RKCS_V_MEX)) | device.rkba
     /* get mem addr */
-    da = GET_DA(device.rkda) * RK11D.RK_NUMWD;
+    da = RK11D.GET_DA(device.rkda) * RK11D.RK_NUMWD
     /* get disk addr */
     wc = 0x10000 - device.rkwc
     /* get wd cnt */
-    if ((da + wc) > (int32)  capac) {
+    if ((da + wc) > capac) {
       /* overrun? */
       wc =  capac -da
       /* trim transfer */
@@ -150,10 +151,10 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
     err = 0
     if (wc != 0) {
       /* seek ok? */
-      switch(FUNC) {
+      FUNC match{
         /* case on function */
 
-        case RK11D.RKCS_READ: /* read */
+        case RK11D.RKCS_READ=> /* read */
           if ((device.rkcs & RK11D.RKCS_FMT)!=0) {
             /* format? */
             cda = da
@@ -202,7 +203,7 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
         break
         /* end read */
 
-        case RK11D.RKCS_WRITE: /* write */
+        case RK11D.RKCS_WRITE=> /* write */
         if (device.rkcs & RK11D.RKCS_INH) {
           /* incr inhibit? */
           if ((t = MAP_RDW(ma, 2, & comp))) {
@@ -237,7 +238,7 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
         break;
         /* end write */
 
-        case RK11D.RKCS_WCHK: /* write check */
+        case RK11D.RKCS_WCHK=> /* write check */
           err = sim_disk_rdsect(uptr, da / RK11D.RK_NUMWD, (uint8 *) rkxb, & sectsread, (wc + RK11D.RK_NUMWD - 1) / RK11D.RK_NUMWD);
         //sim_disk_data_trace(uptr, (uint8 *) rkxb, da / RK11D.RK_NUMWD, sectsread * RK11D.RK_NUMWD * sizeof(* rkxb), "sim_disk_rdsect", RKDEB_DAT & dptr -> dctrl, RKDEB_OPS);
         if (err) {
@@ -272,8 +273,8 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
         break;
         /* end wcheck */
 
-        default: /* read check */
-          break;
+        case _ => /* read check */
+
       } /* end switch */
     } /* end else */
 
@@ -281,7 +282,7 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
     /* final word count */
     if (!(device.rkcs & RK11D.RKCS_INH)) /* final byte addr */
       ma = ma + (wc << 1);
-    rkba = ma & RKBA_IMP;
+    rkba = ma & RK11D.RKBA_IMP
     /* lower 16b */
     device.rkcs = (device.rkcs & ~RK11D.RKCS_MEX) | ((ma >> (16 - RK11D.RKCS_V_MEX)) & RK11D.RKCS_MEX);
     if ((uptr -> FUNC == RK11D.RKCS_READ) && (device.rkcs & RK11D.RKCS_FMT)) /* read format? */
@@ -289,9 +290,9 @@ class RK11DUnit(device:RK11D) extends BasicUnit(device) with  DiskUnit {
     else da = da + wc + (RK11D.RK_NUMWD - 1);
     /* count by words */
     track = (da / RK11D.RK_NUMWD) / RK11D.RK_NUMSC
-    sect = (da / RK11D.RK_NUMWD) % RK_NUMSC;
+    sect = (da / RK11D.RK_NUMWD) % RK11D.RK_NUMSC
     rkda = (rkda & RKDA_DRIVE) | (track << RKDA_V_TRACK) | (sect << RKDA_V_SECT);
-    rk_set_done(0);
+    rk_set_done(0)
 
     if (err != 0) {
       /* error? */
